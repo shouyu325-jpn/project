@@ -12,30 +12,19 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    /* 🎨 テーマ変数 */
+    /* ══════════════════════════════════════════
+       🎨 テーマ変数 — JS の applyTheme() で上書き
+    ══════════════════════════════════════════ */
     :root {
         --primary: #4CAF50; --primary-dark: #388E3C;
-        --bg: #f4f7f6; --card: #ffffff; --text: #333333;
+        --bg: #f0f4f0; --card: #ffffff; --input-bg: #ffffff;
+        --text: #2b2b2b; --muted: #888888; --border: #e0e0e0;
         --danger: #e53935; --warning: #fb8c00; --info: #1e88e5;
-        --border: #e0e0e0; --input-bg: #ffffff; --muted: #888888;
-        
         --quota-bg: #fff8e1; --quota-border: #ffca28;
         --quota-text: #333; --quota-num-color: #f57f17;
-        
         --cal-bg: #ffffff; --cal-border: #eeeeee;
         --cal-today-bg: #e8f5e9; --cal-today-border: #4CAF50;
-    }
-    .dark-mode {
-        --primary: #81c784; --primary-dark: #66bb6a;
-        --bg: #121212; --card: #1e1e1e; --text: #e0e0e0;
-        --danger: #ef5350; --warning: #ffb74d; --info: #64b5f6;
-        --border: #333333; --input-bg: #2c2c2c; --muted: #aaa;
-
-        --quota-bg: #3e2723; --quota-border: #ff9800;
-        --quota-text: #e0e0e0; --quota-num-color: #ffcc80;
-
-        --cal-bg: #1e1e1e; --cal-border: #333333;
-        --cal-today-bg: #1b5e20; --cal-today-border: #81c784;
+        --quota-met-a: #4CAF50; --quota-met-b: #81c784;
     }
 
     /* 共通ベース */
@@ -134,7 +123,7 @@
     .quota-status { font-size: 1.3em; font-weight: bold; color: var(--text); margin-bottom: 10px;}
     .advice-msg { background: rgba(255,255,255,0.5); padding: 10px; border-radius: 8px; font-size: 0.9em; font-weight: bold; color: #555; display: inline-block; }
     .dark-mode .advice-msg { background: rgba(0,0,0,0.3); color: #ccc; }
-    .quota-met { background: linear-gradient(135deg, #4CAF50, #81c784); border-color: #2E7D32; color: #fff;}
+    .quota-met { background: linear-gradient(135deg, var(--quota-met-a), var(--quota-met-b)); border-color: var(--primary-dark); color: #fff;}
     .quota-met .quota-num { color: #fff; text-shadow: none; }
     .quota-met .quota-title, .quota-met .quota-status, .quota-met .advice-msg { color: #fff; background: transparent; }
 
@@ -172,42 +161,26 @@
     }
 
     /* ── モーダル共通 ── */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
-    .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--card); border-radius: 14px; padding: 24px; width: 100%; max-width: 420px; box-shadow: 0 12px 40px rgba(0,0,0,0.3); animation: modal-in 0.18s ease; }
-    @keyframes modal-in { from { transform: scale(0.93) translateY(10px); opacity:0; } to { transform: scale(1) translateY(0); opacity:1; } }
-    .modal-title { font-size: 1.1em; font-weight: bold; margin-bottom: 16px; display:flex; align-items:center; gap:8px; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-    .modal-actions .btn { flex: 1; text-align: center; }
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center; padding:16px; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:var(--card); border-radius:14px; padding:24px; width:100%; max-width:440px; box-shadow:0 12px 40px rgba(0,0,0,0.3); animation:modal-in 0.18s ease; }
+    @keyframes modal-in { from{transform:scale(0.93) translateY(10px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+    .modal-title { font-size:1.1em; font-weight:bold; margin-bottom:16px; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .modal-actions .btn { flex:1; text-align:center; }
 
-    /* ── 案件編集モーダル ── */
-    #editModal .modal-box { max-width: 460px; }
-    .edit-mode-banner { background: var(--warning); color:#fff; font-size:0.8em; font-weight:bold; padding:5px 10px; border-radius:6px; margin-bottom:14px; }
+    /* ── テーマスウォッチ ── */
+    .theme-picker-section { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; }
+    .theme-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
+    .theme-swatch-card { border:2px solid var(--border); border-radius:10px; padding:8px 4px; cursor:pointer; text-align:center; transition:0.2s; }
+    .theme-swatch-card:hover { border-color:var(--primary); transform:translateY(-2px); }
+    .theme-swatch-card.active { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary); }
+    .swatch-dot { width:28px; height:28px; border-radius:50%; margin:0 auto 4px; }
+    .swatch-label { font-size:0.7em; font-weight:bold; color:var(--muted); }
 
-    /* ── ログ編集モーダル ── */
-    .log-edit-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); gap:8px; }
-    .log-edit-row:last-child { border-bottom:none; }
-    .log-edit-date { font-weight:bold; color:var(--primary); font-size:0.9em; flex-shrink:0; }
-    .log-edit-input { width:70px; text-align:center; padding:6px; }
-    .log-edit-del { background:none; color:var(--danger); font-size:1.1em; padding:4px 6px; }
-
-    /* ── テーマカラーピッカー ── */
-    .theme-picker-section { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 15px; }
-    .theme-swatches { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .theme-swatch { width:32px; height:32px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:0.2s; position:relative; }
-    .theme-swatch:hover { transform:scale(1.15); }
-    .theme-swatch.active { border-color: var(--text); box-shadow:0 0 0 2px var(--card); }
-    .theme-swatch.active::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:0.75em; color:#fff; font-weight:bold; }
-
-    /* ── エクスポート/インポート ── */
-    .backup-section { background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 15px; }
-    .backup-section h3 { font-size:0.9em; margin-bottom:10px; }
-    .backup-btns { display:flex; gap:8px; flex-wrap:wrap; }
-
-    /* ── プロジェクトカードに編集ボタン ── */
-    .card-actions { display:flex; gap:6px; margin-top:10px; }
-    .btn-edit { background: var(--info); color:#fff; font-size:0.8em; padding:5px 10px; border-radius:5px; font-weight:bold; }
-    .btn-sm-danger { background: var(--danger); color:#fff; font-size:0.8em; padding:5px 10px; border-radius:5px; font-weight:bold; }
+    /* ── バックアップ ── */
+    .backup-section { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
+    .backup-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -216,8 +189,8 @@
     <div class="header">
         <h1 id="appTitle">進捗管理ホーム</h1>
         <div style="display:flex;gap:4px;">
-            <button class="btn-icon" onclick="openSettingsModal()" title="設定">⚙️</button>
-            <button class="btn-icon" onclick="toggleTheme()">🌙</button>
+            <button class="btn-icon" id="themeToggleBtn" onclick="toggleDark()" title="ダーク/ライト切替">🌙</button>
+            <button class="btn-icon" onclick="openSettingsModal()" title="設定・テーマ">⚙️</button>
         </div>
     </div>
 
@@ -309,8 +282,8 @@
                 <div class="bgm-section">
                     <h3 style="font-size: 0.9em; margin-bottom: 10px; color: var(--muted);">🎧 補助機能：作業音</h3>
                     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <a href="https://amix-design.com/tl/tool-chill/" target="_blank" class="btn-bgm">🍃 環境音サイト</a>
-                        <button class="btn-bgm" onclick="openRandomYT()">🎲 ランダムながら作業動画</button>
+                        <a href="https://amix-design.com/tl/tool-chill/" target="_blank" class="btn-bgm">🍃 環境音</a>
+                        <button class="btn-bgm" onclick="openRandomYT()">▶ 作業用BGM（ランダム再生）</button>
                     </div>
                 </div>
 
@@ -336,10 +309,7 @@
                 </div>
 
                 <div class="log-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <h3 style="font-size: 0.9em; margin:0;">📅 タイムライン (日別)</h3>
-                        <button class="btn-edit" onclick="openLogEditModal()">✏️ ログ編集</button>
-                    </div>
+                    <h3 style="font-size: 0.9em;">📅 タイムライン (日別)</h3>
                     <div class="log-list" id="logList"></div>
                 </div>
 
@@ -352,273 +322,223 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     案件編集モーダル
-════════════════════════════════════════ -->
-<div id="editModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">✏️ <span id="editModalTitle">案件を編集</span></div>
-    <div class="edit-mode-banner">📝 編集モード：変更後「更新」を押してください</div>
-    <div class="input-group" style="margin-bottom:10px;">
-      <label>案件名</label>
-      <input type="text" id="editName" placeholder="案件名">
-    </div>
-    <div class="input-row">
-      <div class="input-group"><label>開始日</label><input type="date" id="editStart"></div>
-      <div class="input-group"><label>締切日</label><input type="date" id="editDeadline"></div>
-    </div>
-    <div class="input-row">
-      <div class="input-group"><label>全体量</label><input type="number" id="editTotal" min="1"></div>
-      <div class="input-group"><label>累計完了</label><input type="number" id="editComp" min="0"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeEditModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveEditModal()">✅ 更新する</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     日別ログ編集モーダル
-════════════════════════════════════════ -->
-<div id="logEditModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-title">📅 日別ログを編集</div>
-    <p style="font-size:0.85em; color:var(--muted); margin-bottom:12px;">値を変更して「保存」→ 0にすると未作業扱い（行削除）</p>
-    <div id="logEditList" style="max-height:300px; overflow-y:auto;"></div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeLogEditModal()">閉じる</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     設定モーダル（テーマ・バックアップ）
-════════════════════════════════════════ -->
+<!-- ══ 設定モーダル ══ -->
 <div id="settingsModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:500px;">
+  <div class="modal-box" style="max-width:480px;">
     <div class="modal-title">⚙️ 設定</div>
 
-    <!-- テーマカラー -->
     <div class="theme-picker-section">
-      <h3 style="font-size:0.9em; margin:0 0 4px;">🎨 テーマカラー</h3>
-      <p style="font-size:0.8em; color:var(--muted); margin:0 0 8px;">プライマリカラーを変更します</p>
-      <div class="theme-swatches" id="themeSwatches"></div>
+      <div style="font-size:0.9em;font-weight:bold;margin-bottom:2px;">🎨 テーマカラー</div>
+      <div style="font-size:0.8em;color:var(--muted);">変更は即時反映・次回も維持されます</div>
+      <div class="theme-grid" id="themeGrid"></div>
     </div>
 
-    <!-- バックアップ -->
     <div class="backup-section">
-      <h3>💾 データのバックアップ</h3>
+      <div style="font-size:0.9em;font-weight:bold;">💾 データのバックアップ</div>
       <div class="backup-btns">
-        <button class="btn btn-primary" onclick="exportData()">📤 エクスポート (JSON)</button>
-        <label class="btn" style="cursor:pointer;">
-          📥 インポート
-          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
-        </label>
+        <button class="btn btn-primary" onclick="exportData()">📤 エクスポート</button>
+        <label class="btn" style="cursor:pointer;">📥 インポート<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)"></label>
       </div>
-      <p style="font-size:0.75em; color:var(--muted); margin-top:8px;">インポートすると現在のデータが上書きされます</p>
+      <div style="font-size:0.75em;color:var(--muted);margin-top:6px;">インポートは現在データを上書きします</div>
     </div>
 
     <div class="modal-actions">
-      <button class="btn btn-primary" style="flex:1;" onclick="closeSettingsModal()">閉じる</button>
+      <button class="btn btn-primary" onclick="closeSettingsModal()">閉じる</button>
     </div>
   </div>
 </div>
+
 <script>
     const STORAGE_KEY = 'gachi_pm_v8';
-    let appData = { theme: 'light', projects: [], currentId: null, themeColor: 'green' };
+    let appData = { theme: 'light', themeId: 'green', projects: [], currentId: null };
     let progressChartInstance = null;
     let calCurrentDate = new Date();
 
-    // ── テーマカラー定義 ──
+    // ══════════════════════════════════════════
+    // 🎨 テーマ定義（全CSS変数をまとめて管理）
+    // ══════════════════════════════════════════
     const THEMES = [
-        { id:'green',  label:'グリーン',  primary:'#4CAF50', dark:'#388E3C',  quota:'#fff8e1', quotaBorder:'#ffca28', quotaNum:'#f57f17', calToday:'#e8f5e9', calTodayBorder:'#4CAF50' },
-        { id:'blue',   label:'ブルー',    primary:'#1e88e5', dark:'#1565C0',  quota:'#e3f2fd', quotaBorder:'#64b5f6', quotaNum:'#1565C0', calToday:'#e3f2fd', calTodayBorder:'#1e88e5' },
-        { id:'orange', label:'オレンジ',  primary:'#fb8c00', dark:'#e65100',  quota:'#fff3e0', quotaBorder:'#ffb74d', quotaNum:'#e65100', calToday:'#fff3e0', calTodayBorder:'#fb8c00' },
-        { id:'purple', label:'パープル',  primary:'#8e24aa', dark:'#6a1b9a',  quota:'#f3e5f5', quotaBorder:'#ce93d8', quotaNum:'#6a1b9a', calToday:'#f3e5f5', calTodayBorder:'#8e24aa' },
-        { id:'teal',   label:'ティール',  primary:'#00897b', dark:'#00695c',  quota:'#e0f2f1', quotaBorder:'#80cbc4', quotaNum:'#00695c', calToday:'#e0f2f1', calTodayBorder:'#00897b' },
-        { id:'red',    label:'レッド',    primary:'#e53935', dark:'#b71c1c',  quota:'#fce4ec', quotaBorder:'#f48fb1', quotaNum:'#b71c1c', calToday:'#fce4ec', calTodayBorder:'#e53935' },
+        {
+            id:'green', label:'グリーン', dot:'#4CAF50',
+            primary:'#4CAF50', primaryDark:'#388E3C',
+            bg:'#f0f4f0', card:'#ffffff', inputBg:'#ffffff',
+            text:'#2b2b2b', muted:'#888888', border:'#e0e0e0',
+            quotaBg:'#fff8e1', quotaBorder:'#ffca28', quotaText:'#333', quotaNum:'#f57f17',
+            calBg:'#ffffff', calBorder:'#eeeeee', calTodayBg:'#e8f5e9', calTodayBorder:'#4CAF50',
+            quotaMetA:'#4CAF50', quotaMetB:'#81c784',
+        },
+        {
+            id:'blue', label:'ブルー', dot:'#1976D2',
+            primary:'#1976D2', primaryDark:'#1565C0',
+            bg:'#f0f4fa', card:'#ffffff', inputBg:'#ffffff',
+            text:'#1a2a3a', muted:'#789', border:'#d0dce8',
+            quotaBg:'#e3f2fd', quotaBorder:'#90caf9', quotaText:'#1a2a3a', quotaNum:'#1565C0',
+            calBg:'#ffffff', calBorder:'#d0dce8', calTodayBg:'#e3f2fd', calTodayBorder:'#1976D2',
+            quotaMetA:'#1976D2', quotaMetB:'#64b5f6',
+        },
+        {
+            id:'orange', label:'オレンジ', dot:'#E65100',
+            primary:'#E65100', primaryDark:'#bf360c',
+            bg:'#fdf6f0', card:'#ffffff', inputBg:'#ffffff',
+            text:'#2c1a0a', muted:'#9a7860', border:'#e8d4c0',
+            quotaBg:'#fff3e0', quotaBorder:'#ffb74d', quotaText:'#2c1a0a', quotaNum:'#E65100',
+            calBg:'#ffffff', calBorder:'#e8d4c0', calTodayBg:'#fff3e0', calTodayBorder:'#E65100',
+            quotaMetA:'#E65100', quotaMetB:'#ffb74d',
+        },
+        {
+            id:'purple', label:'パープル', dot:'#7B1FA2',
+            primary:'#7B1FA2', primaryDark:'#6a1b9a',
+            bg:'#f8f0fc', card:'#ffffff', inputBg:'#ffffff',
+            text:'#2a0a3a', muted:'#907aa0', border:'#e0d0ec',
+            quotaBg:'#f3e5f5', quotaBorder:'#ce93d8', quotaText:'#2a0a3a', quotaNum:'#7B1FA2',
+            calBg:'#ffffff', calBorder:'#e0d0ec', calTodayBg:'#f3e5f5', calTodayBorder:'#7B1FA2',
+            quotaMetA:'#7B1FA2', quotaMetB:'#ce93d8',
+        },
+        {
+            id:'teal', label:'ティール', dot:'#00796B',
+            primary:'#00796B', primaryDark:'#004d40',
+            bg:'#f0faf8', card:'#ffffff', inputBg:'#ffffff',
+            text:'#0a2a28', muted:'#6a9a96', border:'#c0e0dc',
+            quotaBg:'#e0f2f1', quotaBorder:'#80cbc4', quotaText:'#0a2a28', quotaNum:'#00796B',
+            calBg:'#ffffff', calBorder:'#c0e0dc', calTodayBg:'#e0f2f1', calTodayBorder:'#00796B',
+            quotaMetA:'#00796B', quotaMetB:'#80cbc4',
+        },
+        {
+            id:'dark', label:'ダーク', dot:'#90a4ae',
+            primary:'#90a4ae', primaryDark:'#607d8b',
+            bg:'#121212', card:'#1e1e1e', inputBg:'#2c2c2c',
+            text:'#e0e0e0', muted:'#aaaaaa', border:'#333333',
+            quotaBg:'#263238', quotaBorder:'#546e7a', quotaText:'#e0e0e0', quotaNum:'#90a4ae',
+            calBg:'#1e1e1e', calBorder:'#333333', calTodayBg:'#1b3a3a', calTodayBorder:'#90a4ae',
+            quotaMetA:'#607d8b', quotaMetB:'#90a4ae',
+        },
+        {
+            id:'darkGreen', label:'ダーク緑', dot:'#81c784',
+            primary:'#81c784', primaryDark:'#66bb6a',
+            bg:'#121212', card:'#1e1e1e', inputBg:'#2c2c2c',
+            text:'#e0e0e0', muted:'#aaaaaa', border:'#333333',
+            quotaBg:'#1b2e1e', quotaBorder:'#388E3C', quotaText:'#e0e0e0', quotaNum:'#a5d6a7',
+            calBg:'#1e1e1e', calBorder:'#333333', calTodayBg:'#1b5e20', calTodayBorder:'#81c784',
+            quotaMetA:'#388E3C', quotaMetB:'#66bb6a',
+        },
+        {
+            id:'darkBlue', label:'ダーク青', dot:'#64b5f6',
+            primary:'#64b5f6', primaryDark:'#1e88e5',
+            bg:'#0d1117', card:'#161b22', inputBg:'#21262d',
+            text:'#c9d1d9', muted:'#8b949e', border:'#30363d',
+            quotaBg:'#0d1b2a', quotaBorder:'#1e88e5', quotaText:'#c9d1d9', quotaNum:'#64b5f6',
+            calBg:'#161b22', calBorder:'#30363d', calTodayBg:'#0d2137', calTodayBorder:'#64b5f6',
+            quotaMetA:'#1e88e5', quotaMetB:'#64b5f6',
+        },
     ];
 
-    function applyThemeColor(themeId) {
+    function applyTheme(themeId) {
         const t = THEMES.find(x => x.id === themeId) || THEMES[0];
-        const root = document.documentElement;
-        root.style.setProperty('--primary', t.primary);
-        root.style.setProperty('--primary-dark', t.dark);
-        root.style.setProperty('--quota-bg', t.quota);
-        root.style.setProperty('--quota-border', t.quotaBorder);
-        root.style.setProperty('--quota-num-color', t.quotaNum);
-        root.style.setProperty('--cal-today-bg', t.calToday);
-        root.style.setProperty('--cal-today-border', t.calTodayBorder);
-        // アクティブswatch
-        document.querySelectorAll('.theme-swatch').forEach(el => {
-            el.classList.toggle('active', el.dataset.theme === themeId);
+        const r = document.documentElement.style;
+        r.setProperty('--primary',         t.primary);
+        r.setProperty('--primary-dark',    t.primaryDark);
+        r.setProperty('--bg',              t.bg);
+        r.setProperty('--card',            t.card);
+        r.setProperty('--input-bg',        t.inputBg);
+        r.setProperty('--text',            t.text);
+        r.setProperty('--muted',           t.muted);
+        r.setProperty('--border',          t.border);
+        r.setProperty('--quota-bg',        t.quotaBg);
+        r.setProperty('--quota-border',    t.quotaBorder);
+        r.setProperty('--quota-text',      t.quotaText);
+        r.setProperty('--quota-num-color', t.quotaNum);
+        r.setProperty('--cal-bg',          t.calBg);
+        r.setProperty('--cal-border',      t.calBorder);
+        r.setProperty('--cal-today-bg',    t.calTodayBg);
+        r.setProperty('--cal-today-border',t.calTodayBorder);
+        r.setProperty('--quota-met-a',     t.quotaMetA);
+        r.setProperty('--quota-met-b',     t.quotaMetB);
+        // ダーク系はbodyクラスも付与（advice-msg等に使うため）
+        const isDarkTheme = ['dark','darkGreen','darkBlue'].includes(themeId);
+        document.body.classList.toggle('dark-mode', isDarkTheme);
+        // アクティブ表示更新
+        document.querySelectorAll('.theme-swatch-card').forEach(el => {
+            el.classList.toggle('active', el.dataset.tid === themeId);
         });
+        // ダーク/ライトボタンのアイコン切替
+        const btn = document.getElementById('themeToggleBtn');
+        if(btn) btn.textContent = isDarkTheme ? '☀️' : '🌙';
     }
 
-    function renderThemeSwatches() {
-        const container = document.getElementById('themeSwatches');
-        if(!container) return;
-        container.innerHTML = '';
+    function renderThemeGrid() {
+        const grid = document.getElementById('themeGrid'); if(!grid) return;
+        grid.innerHTML = '';
         THEMES.forEach(t => {
-            const sw = document.createElement('div');
-            sw.className = 'theme-swatch' + (appData.themeColor === t.id ? ' active' : '');
-            sw.style.background = t.primary;
-            sw.dataset.theme = t.id;
-            sw.title = t.label;
-            sw.onclick = () => {
-                appData.themeColor = t.id;
-                applyThemeColor(t.id);
-                saveData();
-                renderThemeSwatches();
-            };
-            container.appendChild(sw);
+            const card = document.createElement('div');
+            card.className = 'theme-swatch-card' + (appData.themeId === t.id ? ' active' : '');
+            card.dataset.tid = t.id;
+            card.innerHTML = `<div class="swatch-dot" style="background:${t.dot};"></div><div class="swatch-label">${t.label}</div>`;
+            card.onclick = () => { appData.themeId = t.id; applyTheme(t.id); saveData(); renderThemeGrid(); renderChart(); };
+            grid.appendChild(card);
         });
     }
 
-    // ── 設定モーダル ──
-    function openSettingsModal() { renderThemeSwatches(); document.getElementById('settingsModal').classList.add('open'); }
+    // 設定モーダル
+    function openSettingsModal() { renderThemeGrid(); document.getElementById('settingsModal').classList.add('open'); }
     function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+    document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
 
-    // ── 案件編集モーダル ──
-    let editingProjectId = null;
-    function openEditModal(id, e) {
-        if(e) e.stopPropagation();
-        const p = appData.projects.find(x => x.id === id); if(!p) return;
-        editingProjectId = id;
-        document.getElementById('editModalTitle').textContent = `「${p.title || '無題'}」を編集`;
-        document.getElementById('editName').value = p.title || '';
-        document.getElementById('editStart').value = p.startDate || '';
-        document.getElementById('editDeadline').value = p.deadline || '';
-        document.getElementById('editTotal').value = p.total || 1;
-        document.getElementById('editComp').value = p.completed || 0;
-        document.getElementById('editModal').classList.add('open');
-    }
-    function closeEditModal() { document.getElementById('editModal').classList.remove('open'); editingProjectId = null; }
-    function saveEditModal() {
-        const p = appData.projects.find(x => x.id === editingProjectId); if(!p) return;
-        const newTotal = Math.max(1, parseInt(document.getElementById('editTotal').value) || 1);
-        const newComp  = Math.max(0, Math.min(newTotal, parseInt(document.getElementById('editComp').value) || 0));
-        p.title      = document.getElementById('editName').value || '無題';
-        p.startDate  = document.getElementById('editStart').value;
-        p.deadline   = document.getElementById('editDeadline').value;
-        p.total      = newTotal;
-        p.completed  = newComp;
+    // ダーク切替ボタン（簡易トグル: ライト系⇔ダーク緑）
+    function toggleDark() {
+        const isDark = ['dark','darkGreen','darkBlue'].includes(appData.themeId);
+        appData.themeId = isDark ? 'green' : 'darkGreen';
+        applyTheme(appData.themeId);
         saveData();
-        closeEditModal();
-        // 開いているプロジェクトと同じなら詳細も更新
-        if(appData.currentId === editingProjectId || appData.currentId === p.id) {
-            d.title.value = p.title; d.start.value = p.startDate; d.deadline.value = p.deadline;
-            d.total.value = p.total; d.comp.value = p.completed;
-            refreshDetail();
-        }
-        renderList();
-        renderCalendar();
+        renderThemeGrid();
+        renderChart();
     }
 
-    // ── 日別ログ編集モーダル ──
-    function openLogEditModal() {
-        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
-        const dateMap = {};
-        (p.logs || []).forEach(l => { dateMap[l.date] = { done: l.done }; });
-        const list = document.getElementById('logEditList');
-        list.innerHTML = '';
-        const dates = Object.keys(dateMap).sort((a,b) => new Date(b)-new Date(a));
-        if(dates.length === 0) { list.innerHTML = '<p style="color:var(--muted);text-align:center;">ログがありません</p>'; }
-        dates.forEach(date => {
-            const row = document.createElement('div'); row.className = 'log-edit-row';
-            row.innerHTML = `
-                <span class="log-edit-date">${date}</span>
-                <input type="number" class="log-edit-input" value="${dateMap[date].done}" min="0" data-date="${date}" style="width:70px;padding:6px;border:1px solid var(--border);border-radius:5px;background:var(--input-bg);color:var(--text);">
-                <button class="log-edit-del" data-date="${date}" title="このログを削除">🗑</button>
-                <button class="btn btn-primary" style="font-size:0.75em;padding:5px 8px;" data-save="${date}">保存</button>
-            `;
-            list.appendChild(row);
-        });
-        // イベント設定
-        list.querySelectorAll('[data-save]').forEach(btn => {
-            btn.onclick = () => saveLogEdit(btn.dataset.save, btn.closest('.log-edit-row').querySelector('input').value);
-        });
-        list.querySelectorAll('.log-edit-del').forEach(btn => {
-            btn.onclick = () => deleteLogEntry(btn.dataset.date);
-        });
-        document.getElementById('logEditModal').classList.add('open');
-    }
-    function closeLogEditModal() { document.getElementById('logEditModal').classList.remove('open'); }
-    function saveLogEdit(date, rawVal) {
-        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
-        const val = Math.max(0, parseInt(rawVal) || 0);
-        if(val === 0) { deleteLogEntry(date); return; }
-        const log = (p.logs || []).find(l => l.date === date);
-        if(log) {
-            const diff = val - log.done;
-            log.done = val;
-            p.completed = Math.max(0, Math.min(p.total, p.completed + diff));
-        } else {
-            if(!p.logs) p.logs = [];
-            p.logs.push({ date, done: val, totalCompleted: p.completed + val });
-            p.completed = Math.min(p.total, p.completed + val);
-        }
-        saveData();
-        openLogEditModal(); // リスト再描画
-        refreshDetail();
-    }
-    function deleteLogEntry(date) {
-        if(!confirm(`${date} のログを削除しますか？\n（進捗数値も自動調整されます）`)) return;
-        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
-        const log = (p.logs || []).find(l => l.date === date);
-        if(log) {
-            p.completed = Math.max(0, p.completed - log.done);
-            p.logs = p.logs.filter(l => l.date !== date);
-        }
-        saveData();
-        openLogEditModal();
-        refreshDetail();
-    }
-
-    // ── エクスポート/インポート ──
+    // エクスポート / インポート
     function exportData() {
-        const json = JSON.stringify(appData, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(appData, null, 2)], {type:'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        const now = new Date(); const stamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
-        a.href = url; a.download = `progress_backup_${stamp}.json`; a.click();
+        const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
+        a.href=url; a.download=`progress_backup_${stamp}.json`; a.click();
         URL.revokeObjectURL(url);
     }
     function importData(event) {
         const file = event.target.files[0]; if(!file) return;
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = e => {
             try {
-                const imported = JSON.parse(e.target.result);
-                if(!imported.projects) throw new Error('不正なデータ');
-                if(!confirm(`インポートすると現在のデータが上書きされます。\n（${imported.projects.length}件の案件）\n続けますか？`)) return;
-                appData = imported;
-                if(!appData.themeColor) appData.themeColor = 'green';
-                saveData();
-                applyThemeColor(appData.themeColor);
-                closeSettingsModal();
-                goToList();
-                alert('✅ インポート完了しました！');
+                const imp = JSON.parse(e.target.result);
+                if(!imp.projects) throw new Error('不正なデータ形式');
+                if(!confirm(`インポートすると現在のデータが上書きされます。
+（${imp.projects.length}件の案件）続けますか？`)) return;
+                appData = imp;
+                if(!appData.themeId) appData.themeId = 'green';
+                saveData(); applyTheme(appData.themeId);
+                closeSettingsModal(); goToList();
+                alert('✅ インポート完了！');
             } catch(err) { alert('❌ インポート失敗: ' + err.message); }
         };
         reader.readAsText(file);
         event.target.value = '';
     }
 
-    // モーダル外クリックで閉じる
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.classList.remove('open'); });
-    });
-
-    const ytLinks = [
-        "https://www.youtube.com/results?search_query=ホラーゲーム+実況+ゆるい",
-        "https://www.youtube.com/results?search_query=バイオハザード+実況+まとめ",
-        "https://www.youtube.com/results?search_query=Slay+the+Spire+実況",
-        "https://www.youtube.com/results?search_query=作業用+雑談+ゲーム実況"
+    // ── YouTube 動画ID直リンクリスト（長時間・作業向け） ──
+    const YT_VIDEOS = [
+        'jfKfPfyJRdk', // lofi hip hop radio - beats to relax/study
+        '4xDzrJKXOOY', // synthwave radio
+        'N9B8cJBCECk', // dark academia music
+        'DWcJFNfaw9c', // study music alpha waves
+        'rUxyKA_-grg', // Chillhop Music
+        '5qap5aO4i9A', // lofi hip hop radio
+        'lTRiuFIWV54', // coffee shop ambience
+        'h4wxA3W5Os4', // rain and thunder sounds
+        '36YnV9STBqc', // piano study music
+        'sjkrrmBnpGE', // lo-fi beats study
     ];
-    function openRandomYT() { window.open(ytLinks[Math.floor(Math.random() * ytLinks.length)], '_blank'); }
+    function openRandomYT() {
+        const id = YT_VIDEOS[Math.floor(Math.random() * YT_VIDEOS.length)];
+        window.open(`https://www.youtube.com/watch?v=${id}`, '_blank');
+    }
 
     // --- DOM要素 ---
     const vList = document.getElementById('view-list');
@@ -627,6 +547,8 @@
     const domList = document.getElementById('projectList');
     const domArchList = document.getElementById('archiveList');
     const domOtherDetails = document.getElementById('otherProjectsArea');
+    
+    // カレンダーDOM
     const calGrid = document.getElementById('calendarGrid');
     const calLabel = document.getElementById('calMonthYear');
 
@@ -643,21 +565,21 @@
 
     // --- ユーティリティ ---
     const getToday = () => { const dt = new Date(); dt.setHours(0,0,0,0); return dt; };
-    const getTodayStr = () => { const dt = new Date(); return `${dt.getFullYear()}-${(dt.getMonth()+1).toString().padStart(2,'0')}-${dt.getDate().toString().padStart(2,'0')}`; };
-    const formatDate = (dateObj) => `${dateObj.getFullYear()}-${(dateObj.getMonth()+1).toString().padStart(2,'0')}-${dateObj.getDate().toString().padStart(2,'0')}`;
+    const getTodayStr = () => { const dt = new Date(); return `${dt.getFullYear()}-${(dt.getMonth() + 1).toString().padStart(2, '0')}-${dt.getDate().toString().padStart(2, '0')}`; };
+    const formatDate = (dateObj) => `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
     const uuid = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
-    const formatMin = (m) => { if(!m) return "0分"; const h=Math.floor(m/60); const rm=Math.floor(m%60); return h>0?`${h}時間${rm}分`:`${rm}分`; };
-    const formatTimeStr = (ms) => { const dt=new Date(ms); return `${dt.getHours().toString().padStart(2,'0')}:${dt.getMinutes().toString().padStart(2,'0')}`; };
+    const formatMin = (m) => { if(!m) return "0分"; const h = Math.floor(m/60); const rm = Math.floor(m%60); return h > 0 ? `${h}時間${rm}分` : `${rm}分`; };
+    const formatTimeStr = (ms) => { const dt = new Date(ms); return `${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`; };
 
     function init() {
         const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('gachi_pm_v7');
         if(saved) { try { appData = JSON.parse(saved); } catch(e){} }
         if(!appData.projects) appData.projects = [];
-        if(!appData.themeColor) appData.themeColor = 'green';
-        if(appData.theme === 'dark') document.body.classList.add('dark-mode');
-        applyThemeColor(appData.themeColor);
+        // 旧データ互換: theme:'dark' → themeId:'darkGreen'
+        if(!appData.themeId) appData.themeId = (appData.theme === 'dark') ? 'darkGreen' : 'green';
+        applyTheme(appData.themeId);
 
-        const dt = new Date(); const days = ['日','月','火','水','木','金','土'];
+        const dt = new Date(); const days = ['日', '月', '火', '水', '木', '金', '土'];
         d.topDate.textContent = `📅 今日は ${dt.getMonth()+1}月${dt.getDate()}日 (${days[dt.getDay()]})`;
 
         if(appData.currentId && appData.projects.find(p => p.id === appData.currentId)) { openProject(appData.currentId); }
@@ -665,280 +587,407 @@
         setInterval(updateTimerUI, 1000);
     }
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
-    function toggleTheme() { document.body.classList.toggle('dark-mode'); appData.theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light'; saveData(); renderCalendar(); renderChart(); }
 
     function goToList() {
         appData.currentId = null; saveData();
         vDetail.classList.remove('active'); vList.classList.add('active');
-        renderList(); renderCalendar();
+        renderList();
+        renderCalendar(); // カレンダー描画
     }
 
-    // ── カレンダー ──
-    function changeMonth(diff) { calCurrentDate.setMonth(calCurrentDate.getMonth()+diff); renderCalendar(); }
+    // =========================================
+    // 📅 カレンダー機能
+    // =========================================
+    function changeMonth(diff) {
+        calCurrentDate.setMonth(calCurrentDate.getMonth() + diff);
+        renderCalendar();
+    }
 
     function renderCalendar() {
         calGrid.innerHTML = '';
-        const year = calCurrentDate.getFullYear(), month = calCurrentDate.getMonth();
-        calLabel.textContent = `${year}年 ${month+1}月`;
-        const days = ['日','月','火','水','木','金','土'];
+        const year = calCurrentDate.getFullYear();
+        const month = calCurrentDate.getMonth();
+        calLabel.textContent = `${year}年 ${month + 1}月`;
+
+        // 曜日ヘッダー
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
         days.forEach(day => {
             const el = document.createElement('div'); el.className = 'cal-day-name'; el.textContent = day;
             if(day==='日') el.style.color='var(--danger)'; if(day==='土') el.style.color='var(--info)';
             calGrid.appendChild(el);
         });
+
         const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month+1, 0).getDate();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
         const todayStr = getTodayStr();
+
+        // アクティブなプロジェクトの締切日を収集
         const deadlines = {};
-        appData.projects.forEach(p => { if(p.isArchived) return; if(!deadlines[p.deadline]) deadlines[p.deadline]=[]; deadlines[p.deadline].push(p); });
-        for(let i=0;i<firstDay;i++) { const el=document.createElement('div'); el.className='cal-cell cal-empty'; calGrid.appendChild(el); }
-        for(let i=1;i<=daysInMonth;i++) {
+        appData.projects.forEach(p => {
+            if(p.isArchived) return;
+            if(!deadlines[p.deadline]) deadlines[p.deadline] = [];
+            deadlines[p.deadline].push(p);
+        });
+
+        // 空白セル
+        for (let i = 0; i < firstDay; i++) {
+            const el = document.createElement('div'); el.className = 'cal-cell cal-empty'; calGrid.appendChild(el);
+        }
+
+        // 日付セル
+        for (let i = 1; i <= daysInMonth; i++) {
             const dateStr = `${year}-${(month+1).toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
             const el = document.createElement('div'); el.className = 'cal-cell';
             el.innerHTML = `<span>${i}</span><div class="cal-markers" id="cal-mark-${i}"></div>`;
-            if(dateStr===todayStr) el.classList.add('cal-today');
-            if(deadlines[dateStr]) {
-                const markerContainer = el.querySelector('.cal-markers');
-                const diffDays = Math.ceil((new Date(dateStr)-getToday())/86400000);
-                const projects = deadlines[dateStr]; const MAX_BADGES=2;
-                if(diffDays<0) el.classList.add('deadline-overdue');
-                else if(diffDays===0) el.classList.add('deadline-today');
-                else if(diffDays<=3) el.classList.add('deadline-urgent');
-                const showCount = Math.min(projects.length, MAX_BADGES);
-                for(let pi=0;pi<showCount;pi++) {
-                    const badge = document.createElement('div'); badge.className='cal-badge';
-                    if(diffDays<0) { badge.classList.add('overdue'); badge.textContent=`！${projects[pi].title.substring(0,4)}`; }
-                    else if(diffDays===0) { badge.classList.add('deadline-now'); badge.textContent=`🔴${projects[pi].title.substring(0,3)}`; }
-                    else if(diffDays<=3) { badge.classList.add('urgent'); badge.textContent=projects[pi].title.substring(0,4); }
-                    else { badge.textContent=projects[pi].title.substring(0,4); }
-                    markerContainer.appendChild(badge);
+            
+            // 今日のハイライト
+            if (dateStr === todayStr) el.classList.add('cal-today');
+
+        // 締切チェック
+        if (deadlines[dateStr]) {
+            const markerContainer = el.querySelector('.cal-markers');
+            const diffDays = Math.ceil((new Date(dateStr) - getToday()) / 86400000);
+            const projects = deadlines[dateStr];
+            const MAX_BADGES = 2; // 最大表示バッジ数
+
+            // セル全体のハイライトクラスを設定
+            if (diffDays < 0) { el.classList.add('deadline-overdue'); }
+            else if (diffDays === 0) { el.classList.add('deadline-today'); }
+            else if (diffDays <= 3) { el.classList.add('deadline-urgent'); }
+
+            // バッジを生成（最大MAX_BADGES件）
+            const showCount = Math.min(projects.length, MAX_BADGES);
+            for (let pi = 0; pi < showCount; pi++) {
+                const badge = document.createElement('div');
+                badge.className = 'cal-badge';
+                if (diffDays < 0) {
+                    badge.classList.add('overdue');
+                    badge.textContent = `！${projects[pi].title.substring(0, 4)}`;
+                } else if (diffDays === 0) {
+                    badge.classList.add('deadline-now');
+                    badge.textContent = `🔴${projects[pi].title.substring(0, 3)}`;
+                } else if (diffDays <= 3) {
+                    badge.classList.add('urgent');
+                    badge.textContent = projects[pi].title.substring(0, 4);
+                } else {
+                    badge.textContent = projects[pi].title.substring(0, 4);
                 }
-                if(projects.length>MAX_BADGES) { const more=document.createElement('div'); more.className='cal-badge-more'; more.textContent=`+${projects.length-MAX_BADGES}`; markerContainer.appendChild(more); }
+                markerContainer.appendChild(badge);
             }
-            el.onclick = () => { if(deadlines[dateStr]&&deadlines[dateStr].length>0) openProject(deadlines[dateStr][0].id); };
+
+            // 省略バッジ「+N」
+            if (projects.length > MAX_BADGES) {
+                const more = document.createElement('div');
+                more.className = 'cal-badge-more';
+                more.textContent = `+${projects.length - MAX_BADGES}`;
+                markerContainer.appendChild(more);
+            }
+        }
+
+            // クリックで関連プロジェクトを開く（または一番上を開く）
+            el.onclick = () => {
+                if(deadlines[dateStr] && deadlines[dateStr].length > 0) {
+                    openProject(deadlines[dateStr][0].id);
+                }
+            };
+
             calGrid.appendChild(el);
         }
     }
 
-    // ── グラフ ──
+    // =========================================
+    // 📊 グラフ機能 (Chart.js)
+    // =========================================
     function renderChart() {
-        if(!appData.currentId) return;
-        const p = appData.projects.find(x => x.id===appData.currentId); if(!p) return;
-        if(progressChartInstance) { progressChartInstance.destroy(); progressChartInstance=null; }
-        const oldCanvas = document.getElementById('progressChart');
-        const newCanvas = document.createElement('canvas'); newCanvas.id='progressChart';
-        oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        const labels=[], dailyData=[], cumData=[];
-        const todayObj = getToday();
-        let recentTotalDone = 0;
-        for(let i=6;i>=0;i--) { const dObj=new Date(todayObj); dObj.setDate(dObj.getDate()-i); const dStr=formatDate(dObj); const log=(p.logs||[]).find(l=>l.date===dStr); if(log) recentTotalDone+=log.done; }
-        let currentCum = Math.max(0, p.completed-recentTotalDone);
-        for(let i=6;i>=0;i--) {
-            const dObj=new Date(todayObj); dObj.setDate(dObj.getDate()-i); const dStr=formatDate(dObj);
-            labels.push(`${dObj.getMonth()+1}/${dObj.getDate()}`);
-            const log=(p.logs||[]).find(l=>l.date===dStr); const doneToday=log?log.done:0;
-            dailyData.push(doneToday); currentCum+=doneToday; cumData.push(currentCum);
+        if (!appData.currentId) return;
+        const p = appData.projects.find(x => x.id === appData.currentId);
+        if (!p) return;
+
+        if (progressChartInstance) {
+            progressChartInstance.destroy();
+            progressChartInstance = null;
+            // destroy後もcanvasに残るサイズ情報をリセットするため要素ごと作り直す
+            const oldCanvas = document.getElementById('progressChart');
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'progressChart';
+            oldCanvas.parentNode.replaceChild(newCanvas, oldCanvas);
         }
-        const isDark=document.body.classList.contains('dark-mode');
-        const textColor=isDark?'#e0e0e0':'#333'; const gridColor=isDark?'#333':'#eee';
+        const ctx = document.getElementById('progressChart').getContext('2d');
+
+        // 過去7日間のデータを生成 (サボり日=0も含む)
+        const labels = [];
+        const dailyData = [];
+        const cumData = [];
+        const todayObj = getToday();
+
+        // 累計計算用に「7日より前の完了ベースライン」を探す
+        // シンプル化のため、全体の完了数から過去7日分の入力の合計を引いてベースとする
+        let recentTotalDone = 0;
+        for (let i = 6; i >= 0; i--) {
+            const dObj = new Date(todayObj); dObj.setDate(dObj.getDate() - i);
+            const dStr = formatDate(dObj);
+            const log = (p.logs || []).find(l => l.date === dStr);
+            if (log) recentTotalDone += log.done;
+        }
+        
+        let currentCum = Math.max(0, p.completed - recentTotalDone); // 7日前のスタート時点の累計
+
+        for (let i = 6; i >= 0; i--) {
+            const dObj = new Date(todayObj); dObj.setDate(dObj.getDate() - i);
+            const dStr = formatDate(dObj);
+            labels.push(`${dObj.getMonth()+1}/${dObj.getDate()}`);
+
+            const log = (p.logs || []).find(l => l.date === dStr);
+            const doneToday = log ? log.done : 0;
+            dailyData.push(doneToday);
+            
+            currentCum += doneToday;
+            cumData.push(currentCum);
+        }
+
+        const isDark = document.body.classList.contains('dark-mode');
+        const textColor = isDark ? '#e0e0e0' : '#333';
+        const gridColor = isDark ? '#333333' : '#eeeeee';
         const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4CAF50';
-        const infoColor=isDark?'#64b5f6':'#1e88e5';
+        const infoColor = isDark ? '#64b5f6' : '#1e88e5';
+
         progressChartInstance = new Chart(ctx, {
-            type:'bar', data:{ labels, datasets:[
-                { type:'line', label:'累計進捗', data:cumData, borderColor:infoColor, backgroundColor:infoColor, borderWidth:2, tension:0.3, yAxisID:'y-cum', fill:false },
-                { type:'bar', label:'日別作業量', data:dailyData, backgroundColor:primaryColor, borderRadius:4, yAxisID:'y-daily' }
-            ]},
-            options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-                plugins:{ legend:{labels:{color:textColor}} },
-                scales:{
-                    x:{ticks:{color:textColor},grid:{color:gridColor}},
-                    'y-daily':{type:'linear',position:'left',ticks:{color:textColor,stepSize:1},grid:{color:gridColor},title:{display:true,text:'作業量/日',color:textColor,font:{size:10}}},
-                    'y-cum':{type:'linear',position:'right',ticks:{color:textColor},grid:{drawOnChartArea:false},suggestedMax:p.total,title:{display:true,text:'累計進捗',color:textColor,font:{size:10}}}
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'line',
+                        label: '累計進捗',
+                        data: cumData,
+                        borderColor: infoColor,
+                        backgroundColor: infoColor,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        yAxisID: 'y-cum',
+                        fill: false
+                    },
+                    {
+                        type: 'bar',
+                        label: '日別作業量',
+                        data: dailyData,
+                        backgroundColor: primaryColor,
+                        borderRadius: 4,
+                        yAxisID: 'y-daily'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: textColor } }
+                },
+                scales: {
+                    x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                    'y-daily': {
+                        type: 'linear', position: 'left',
+                        ticks: { color: textColor, stepSize: 1 },
+                        grid: { color: gridColor },
+                        title: { display: true, text: '作業量/日', color: textColor, font: {size: 10} }
+                    },
+                    'y-cum': {
+                        type: 'linear', position: 'right',
+                        ticks: { color: textColor },
+                        grid: { drawOnChartArea: false },
+                        suggestedMax: p.total,
+                        title: { display: true, text: '累計進捗', color: textColor, font: {size: 10} }
+                    }
                 }
             }
         });
     }
 
-    // ── 既存ロジック ──
+    // =========================================
+    // 既存ロジック
+    // =========================================
     function calcPriorityScore(p) {
-        const diffDays=Math.ceil((new Date(p.deadline)-getToday())/86400000); const remain=p.total-p.completed;
-        if(remain<=0) return -1000; let score=0;
-        if(diffDays<=3) score+=1000; if(diffDays<0) score+=2000;
-        score+=remain*10; score-=diffDays*5; return score;
+        const diffDays = Math.ceil((new Date(p.deadline) - getToday()) / 86400000);
+        const remain = p.total - p.completed;
+        if (remain <= 0) return -1000;
+        let score = 0;
+        if (diffDays <= 3) score += 1000; if (diffDays < 0) score += 2000;
+        score += remain * 10; score -= diffDays * 5; return score;
     }
 
     function renderList() {
-        domHero.innerHTML=''; domList.innerHTML=''; domArchList.innerHTML='';
-        domOtherDetails.style.display='none';
-        if(appData.projects.length===0) { domHero.innerHTML='<p style="text-align:center;color:var(--muted);">案件がないぞ！「新規作成」から始めよう！</p>'; return; }
-        let highestScore=-Infinity; let topProject=null; let others=[];
+        domHero.innerHTML = ''; domList.innerHTML = ''; domArchList.innerHTML = '';
+        domOtherDetails.style.display = 'none';
+
+        if(appData.projects.length === 0) {
+            domHero.innerHTML = '<p style="text-align:center; color:var(--muted);">案件がないぞ！「新規作成」から始めよう！</p>';
+            return;
+        }
+
+        let highestScore = -Infinity; let topProject = null; let others = [];
+
         appData.projects.forEach(p => {
             if(p.isArchived) { renderCard(p, domArchList); return; }
-            const score=calcPriorityScore(p);
-            if(score>highestScore && p.total>p.completed) { if(topProject) others.push(topProject); highestScore=score; topProject=p; }
-            else { others.push(p); }
+            const score = calcPriorityScore(p);
+            if(score > highestScore && p.total > p.completed) {
+                if(topProject) others.push(topProject);
+                highestScore = score; topProject = p;
+            } else { others.push(p); }
         });
-        if(!topProject && others.length>0) topProject=others.shift();
+
+        if(!topProject && others.length > 0) topProject = others.shift();
+
         if(topProject) {
-            const pct=Math.min(100,(topProject.completed/topProject.total)*100);
-            domHero.innerHTML=`
+            const pct = Math.min(100, (topProject.completed / topProject.total) * 100);
+            domHero.innerHTML = `
                 <div class="hero-project">
                     <div class="hero-label">🔥 今日やるのはコレ！</div>
-                    <div class="hero-title">${topProject.title||'無題'}</div>
-                    <div class="hero-meta"><span>期限: ${topProject.deadline}</span><span>残量: ${topProject.total-topProject.completed}</span></div>
-                    <div class="mini-bar-bg" style="margin-bottom:10px;"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
-                    <div style="display:flex;gap:8px;margin-bottom:5px;">
-                        <button class="btn-hero" style="flex:1;" onclick="openProject('${topProject.id}')">▶ この作業を始める</button>
-                        <button class="btn-edit" style="padding:12px 14px;font-size:1em;" onclick="openEditModal('${topProject.id}',event)">✏️</button>
-                    </div>
-                </div>`;
+                    <div class="hero-title">${topProject.title || '無題'}</div>
+                    <div class="hero-meta"><span>期限: ${topProject.deadline}</span><span>残量: ${topProject.total - topProject.completed}</span></div>
+                    <div class="mini-bar-bg" style="margin-bottom:15px;"><div class="mini-bar-fill" style="width: ${pct}%"></div></div>
+                    <button class="btn-hero" onclick="openProject('${topProject.id}')">▶ この作業を始める</button>
+                </div>
+            `;
         }
-        if(others.length>0) {
-            domOtherDetails.style.display='block';
-            if(window.innerWidth>=768) domOtherDetails.open=true;
+        if(others.length > 0) {
+            domOtherDetails.style.display = 'block';
+            // PCでは自動展開
+            if(window.innerWidth >= 768) domOtherDetails.open = true;
             others.forEach(p => renderCard(p, domList));
         }
     }
 
     function renderCard(p, container) {
-        const pct=p.total>0?Math.min(100,(p.completed/p.total)*100):0;
-        const card=document.createElement('div'); card.className='project-card';
-        card.innerHTML=`
-            <h3><span>${p.title||'無題'}</span><span>${pct.toFixed(0)}%</span></h3>
+        const pct = p.total > 0 ? Math.min(100, (p.completed / p.total) * 100) : 0;
+        const card = document.createElement('div'); card.className = 'project-card'; card.onclick = () => openProject(p.id);
+        card.innerHTML = `<h3><span>${p.title || '無題'}</span> <span>${pct.toFixed(0)}%</span></h3>
             <div class="meta">締切: ${p.deadline} | 完了: ${p.completed} / ${p.total}</div>
-            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
-            <div class="card-actions">
-                <button class="btn btn-primary" style="font-size:0.8em;padding:6px 12px;flex:1;" onclick="openProject('${p.id}')">▶ 開く</button>
-                <button class="btn-edit" onclick="openEditModal('${p.id}',event)">✏️ 編集</button>
-                <button class="btn-sm-danger" onclick="deleteProjectById('${p.id}',event)">🗑</button>
-            </div>`;
+            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width: ${pct}%"></div></div>`;
         container.appendChild(card);
     }
 
     function createNewProject() {
-        const t=getToday(); const nx=new Date(t); nx.setDate(t.getDate()+7);
-        const newProj={id:uuid(),title:"新規プロジェクト",startDate:getTodayStr(),deadline:nx.toISOString().split('T')[0],total:30,completed:0,isArchived:false,logs:[],timeLogs:[],activeSessionStart:null};
+        const t = getToday(); const nx = new Date(t); nx.setDate(t.getDate()+7);
+        const newProj = { id: uuid(), title: "新規プロジェクト", startDate: getTodayStr(), deadline: nx.toISOString().split('T')[0], total: 30, completed: 0, isArchived: false, logs: [], timeLogs: [], activeSessionStart: null };
         appData.projects.push(newProj); saveData(); openProject(newProj.id);
     }
-
+    
     function openProject(id) {
-        const p=appData.projects.find(x=>x.id===id); if(!p) return goToList();
-        appData.currentId=id; saveData();
+        const p = appData.projects.find(x => x.id === id); if(!p) return goToList();
+        appData.currentId = id; saveData();
         vList.classList.remove('active'); vDetail.classList.add('active');
-        d.title.value=p.title; d.start.value=p.startDate; d.deadline.value=p.deadline;
-        d.total.value=p.total; d.comp.value=p.completed;
-        d.btnArch.innerHTML=p.isArchived?"📦 アーカイブ解除":"📦 アーカイブ";
+        d.title.value = p.title; d.start.value = p.startDate; d.deadline.value = p.deadline;
+        d.total.value = p.total; d.comp.value = p.completed;
+        d.btnArch.innerHTML = p.isArchived ? "📦 アーカイブ解除" : "📦 アーカイブ";
         refreshDetail();
     }
 
-    function toggleArchive() { const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return; p.isArchived=!p.isArchived; saveData(); goToList(); }
-
-    function deleteProject() {
-        if(!confirm("この案件を削除しますか？\n（ログも含めて完全に削除されます）")) return;
-        appData.projects=appData.projects.filter(x=>x.id!==appData.currentId); saveData(); goToList();
-    }
-    function deleteProjectById(id, e) {
-        if(e) e.stopPropagation();
-        const p=appData.projects.find(x=>x.id===id); if(!p) return;
-        if(!confirm(`「${p.title||'無題'}」を削除しますか？`)) return;
-        appData.projects=appData.projects.filter(x=>x.id!==id); saveData(); renderList(); renderCalendar();
-    }
+    function toggleArchive() { const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return; p.isArchived = !p.isArchived; saveData(); goToList(); }
+    function deleteProject() { if(!confirm("マジで削除する？")) return; appData.projects = appData.projects.filter(x => x.id !== appData.currentId); saveData(); goToList(); }
 
     function saveDetail() {
-        const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return;
-        p.title=d.title.value; p.startDate=d.start.value; p.deadline=d.deadline.value;
-        p.total=Math.max(1,parseInt(d.total.value)||1);
-        let oldCompleted=p.completed; p.completed=Math.max(0,Math.min(p.total,parseInt(d.comp.value)||0)); d.comp.value=p.completed;
-        const diff=p.completed-oldCompleted;
-        if(diff!==0) {
-            const today=getTodayStr(); if(!p.logs) p.logs=[];
-            let log=p.logs.find(l=>l.date===today);
-            if(log) { log.done=Math.max(0,log.done+diff); log.totalCompleted=p.completed; }
-            else { p.logs.push({date:today,done:Math.max(0,diff),totalCompleted:p.completed}); }
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        p.title = d.title.value; p.startDate = d.start.value; p.deadline = d.deadline.value;
+        p.total = Math.max(1, parseInt(d.total.value) || 1);
+        let oldCompleted = p.completed; p.completed = Math.max(0, Math.min(p.total, parseInt(d.comp.value) || 0)); d.comp.value = p.completed;
+        const diff = p.completed - oldCompleted;
+        if(diff !== 0) {
+            const today = getTodayStr(); if(!p.logs) p.logs = [];
+            let log = p.logs.find(l => l.date === today);
+            if(log) { log.done = Math.max(0, log.done + diff); log.totalCompleted = p.completed; }
+            else { p.logs.push({ date: today, done: Math.max(0, diff), totalCompleted: p.completed }); }
         }
         saveData(); refreshDetail();
     }
 
     function addProgressLog() {
-        const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return;
-        const val=parseInt(d.qLog.value); if(isNaN(val)||val<=0) return;
-        p.completed=Math.min(p.total,p.completed+val); d.comp.value=p.completed;
-        const today=getTodayStr(); if(!p.logs) p.logs=[];
-        let log=p.logs.find(l=>l.date===today);
-        if(log) { log.done+=val; log.totalCompleted=p.completed; } else { p.logs.push({date:today,done:val,totalCompleted:p.completed}); }
-        d.qLog.value=''; saveData(); refreshDetail();
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const val = parseInt(d.qLog.value); if(isNaN(val) || val <= 0) return;
+        p.completed = Math.min(p.total, p.completed + val); d.comp.value = p.completed;
+        const today = getTodayStr(); if(!p.logs) p.logs = [];
+        let log = p.logs.find(l => l.date === today);
+        if(log) { log.done += val; log.totalCompleted = p.completed; } else { p.logs.push({ date: today, done: val, totalCompleted: p.completed }); }
+        d.qLog.value = ''; saveData(); refreshDetail();
     }
 
     function toggleTimer() {
-        const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return;
-        const now=Date.now();
-        if(!p.activeSessionStart) { p.activeSessionStart=now; }
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const now = Date.now();
+        if(!p.activeSessionStart) { p.activeSessionStart = now; } 
         else {
-            const diffMin=(now-p.activeSessionStart)/60000; const today=getTodayStr();
-            if(!p.timeLogs) p.timeLogs=[]; let tLog=p.timeLogs.find(l=>l.date===today);
-            if(!tLog) { tLog={date:today,sessions:[],totalMinutes:0}; p.timeLogs.push(tLog); }
-            tLog.sessions.push({start:formatTimeStr(p.activeSessionStart),end:formatTimeStr(now),minutes:diffMin});
-            tLog.totalMinutes+=diffMin; p.activeSessionStart=null;
+            const diffMin = (now - p.activeSessionStart) / 60000; const today = getTodayStr();
+            if(!p.timeLogs) p.timeLogs = []; let tLog = p.timeLogs.find(l => l.date === today);
+            if(!tLog) { tLog = { date: today, sessions: [], totalMinutes: 0 }; p.timeLogs.push(tLog); }
+            tLog.sessions.push({ start: formatTimeStr(p.activeSessionStart), end: formatTimeStr(now), minutes: diffMin });
+            tLog.totalMinutes += diffMin; p.activeSessionStart = null;
         }
         saveData(); refreshDetail();
     }
 
     function updateTimerUI() {
-        if(!appData.currentId||!vDetail.classList.contains('active')) return;
-        const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return;
+        if(!appData.currentId || !vDetail.classList.contains('active')) return;
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
         if(p.activeSessionStart) {
-            d.btnTimer.textContent="■ 作業終了"; d.btnTimer.classList.add('stop'); d.timerBox.classList.add('active');
-            const diffMs=Date.now()-p.activeSessionStart;
-            d.timerDisplay.textContent=`${Math.floor(diffMs/3600000).toString().padStart(2,'0')}:${Math.floor((diffMs%3600000)/60000).toString().padStart(2,'0')}:${Math.floor((diffMs%60000)/1000).toString().padStart(2,'0')}`;
+            d.btnTimer.textContent = "■ 作業終了"; d.btnTimer.classList.add('stop'); d.timerBox.classList.add('active');
+            const diffMs = Date.now() - p.activeSessionStart;
+            d.timerDisplay.textContent = `${Math.floor(diffMs/3600000).toString().padStart(2,'0')}:${Math.floor((diffMs%3600000)/60000).toString().padStart(2,'0')}:${Math.floor((diffMs%60000)/1000).toString().padStart(2,'0')}`;
         } else {
-            d.btnTimer.textContent="▶ 作業開始"; d.btnTimer.classList.remove('stop'); d.timerBox.classList.remove('active'); d.timerDisplay.textContent="00:00:00";
+            d.btnTimer.textContent = "▶ 作業開始"; d.btnTimer.classList.remove('stop'); d.timerBox.classList.remove('active'); d.timerDisplay.textContent = "00:00:00";
         }
     }
 
     function refreshDetail() {
-        const p=appData.projects.find(x=>x.id===appData.currentId); if(!p) return;
-        updateTimerUI(); renderChart();
-        const todayDt=getToday(); const startDt=new Date(p.startDate); const deadDt=new Date(p.deadline);
-        const pct=(p.completed/p.total)*100; const remain=p.total-p.completed;
-        const diffDays=Math.ceil((deadDt-todayDt)/86400000);
-        const totalDur=deadDt-startDt; const passedDur=todayDt-startDt;
-        let timePct=Math.max(0,Math.min(100,totalDur>0?(passedDur/totalDur)*100:(passedDur>=0?100:0)));
-        const gap=pct-timePct;
-        const todayStr=getTodayStr(); const logToday=(p.logs||[]).find(l=>l.date===todayStr);
-        const todayDone=logToday?logToday.done:0;
-        let targetQuota=diffDays>0?Math.ceil((remain+todayDone)/diffDays):remain+todayDone;
-        d.qAdvice.style.display='none'; d.quotaCard.className='quota-card';
-        if(remain===0&&todayDone===0) { d.quotaCard.classList.add('quota-met'); d.qNum.textContent=`完了`; d.qStatus.textContent='🎉 全行程終了！お疲れ！'; }
-        else if(todayDone>=targetQuota&&targetQuota>0) { d.quotaCard.classList.add('quota-met'); d.qNum.textContent=`${todayDone} / ${targetQuota}`; d.qStatus.textContent='✨ 今日の分達成！えらい！'; }
-        else {
-            d.qNum.textContent=`${todayDone} / ${targetQuota}`; d.qStatus.textContent=`あと ${targetQuota-todayDone} で達成！`;
-            d.qAdvice.style.display='inline-block';
-            if(gap<-5&&diffDays>0) { d.qAdvice.innerHTML="💡 昨日の遅れは残り日数で割り直した！<br>今日からまたリスタートだ！"; }
-            else if(targetQuota>=10) { d.qAdvice.innerHTML="⚠️ 量が多いな！<br>まずは【最低1件】だけ手をつけよう！"; }
-            else if(targetQuota>=4) { d.qAdvice.innerHTML=`💡 午前: ${Math.ceil(targetQuota/2)} / 午後: ${Math.floor(targetQuota/2)}<br>に分けてやるのもアリだぞ！`; }
-            else { d.qAdvice.style.display='none'; }
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        updateTimerUI(); renderChart(); // グラフ描画更新
+
+        const todayDt = getToday(); const startDt = new Date(p.startDate); const deadDt = new Date(p.deadline);
+        const pct = (p.completed / p.total) * 100; const remain = p.total - p.completed;
+        const diffDays = Math.ceil((deadDt - todayDt) / 86400000);
+        const totalDur = deadDt - startDt; const passedDur = todayDt - startDt;
+        let timePct = Math.max(0, Math.min(100, totalDur > 0 ? (passedDur / totalDur) * 100 : (passedDur >= 0 ? 100 : 0)));
+        const gap = pct - timePct;
+
+        const todayStr = getTodayStr(); const logToday = (p.logs || []).find(l => l.date === todayStr);
+        const todayDone = logToday ? logToday.done : 0;
+        let targetQuota = diffDays > 0 ? Math.ceil((remain + todayDone) / diffDays) : remain + todayDone; 
+
+        d.qAdvice.style.display = 'none'; d.quotaCard.className = 'quota-card';
+        if (remain === 0 && todayDone === 0) {
+            d.quotaCard.classList.add('quota-met'); d.qNum.textContent = `完了`; d.qStatus.textContent = '🎉 全行程終了！お疲れ！';
+        } else if (todayDone >= targetQuota && targetQuota > 0) {
+            d.quotaCard.classList.add('quota-met'); d.qNum.textContent = `${todayDone} / ${targetQuota}`; d.qStatus.textContent = '✨ 今日の分達成！えらい！';
+        } else {
+            d.qNum.textContent = `${todayDone} / ${targetQuota}`; d.qStatus.textContent = `あと ${targetQuota - todayDone} で達成！`;
+            d.qAdvice.style.display = 'inline-block';
+            if (gap < -5 && diffDays > 0) { d.qAdvice.innerHTML = "💡 昨日の遅れは残り日数で割り直した！<br>今日からまたリスタートだ！"; }
+            else if (targetQuota >= 10) { d.qAdvice.innerHTML = "⚠️ 量が多いな！<br>まずは【最低1件】だけ手をつけよう！"; }
+            else if (targetQuota >= 4) { d.qAdvice.innerHTML = `💡 午前: ${Math.ceil(targetQuota/2)} / 午後: ${Math.floor(targetQuota/2)}<br>に分けてやるのもアリだぞ！`; }
+            else { d.qAdvice.style.display = 'none'; }
         }
-        d.bar.style.width=`${pct}%`; d.barText.textContent=`${pct.toFixed(1)}%`; d.tBar.style.width=`${timePct}%`;
-        if(gap<-2) d.bar.style.background='var(--danger)'; else if(gap>2) d.bar.style.background='#8bc34a'; else d.bar.style.background='var(--muted)';
-        if(gap<-0.5) d.vGap.innerHTML=`<span style="color:var(--danger);font-weight:bold;">▼ ${Math.abs(gap).toFixed(1)}%</span>`;
-        else if(gap>0.5) d.vGap.innerHTML=`<span style="color:#8bc34a;font-weight:bold;">▲ ${gap.toFixed(1)}%</span>`;
-        else d.vGap.innerHTML=`<span style="color:var(--muted)">± 0%</span>`;
-        d.vDays.innerHTML=diffDays<0&&remain>0?`<span style="color:var(--danger)">${Math.abs(diffDays)}日 超過</span>`:diffDays;
-        d.vPace.textContent=`${(p.total/Math.max(1,Math.ceil((deadDt-startDt)/86400000))).toFixed(1)} / 日`;
-        let totalAllMinutes=0; (p.timeLogs||[]).forEach(l=>totalAllMinutes+=l.totalMinutes);
-        d.vAvg.textContent=p.completed>0?formatMin(totalAllMinutes/p.completed):"-";
-        const todayTLog=(p.timeLogs||[]).find(l=>l.date===todayStr);
-        d.todayTime.textContent=`今日の作業時間: ${formatMin(todayTLog?todayTLog.totalMinutes:0)}`;
-        d.logList.innerHTML=''; const dateMap={};
-        (p.logs||[]).forEach(l=>{ if(!dateMap[l.date]) dateMap[l.date]={done:0,sessions:[],time:0}; dateMap[l.date].done=l.done; });
-        (p.timeLogs||[]).forEach(l=>{ if(!dateMap[l.date]) dateMap[l.date]={done:0,sessions:[],time:0}; dateMap[l.date].sessions=l.sessions; dateMap[l.date].time=l.totalMinutes; });
-        const dates=Object.keys(dateMap).sort((a,b)=>new Date(b)-new Date(a));
-        if(dates.length===0) { d.logList.innerHTML='<div style="color:var(--muted);text-align:center;padding:10px;">記録がないぞ</div>'; return; }
+
+        d.bar.style.width = `${pct}%`; d.barText.textContent = `${pct.toFixed(1)}%`; d.tBar.style.width = `${timePct}%`;
+        if (gap < -2) d.bar.style.background = 'var(--danger)'; else if (gap > 2) d.bar.style.background = '#8bc34a'; else d.bar.style.background = 'var(--muted)';
+
+        if (gap < -0.5) d.vGap.innerHTML = `<span style="color:var(--danger); font-weight:bold;">▼ ${Math.abs(gap).toFixed(1)}%</span>`; else if (gap > 0.5) d.vGap.innerHTML = `<span style="color:#8bc34a; font-weight:bold;">▲ ${gap.toFixed(1)}%</span>`; else d.vGap.innerHTML = `<span style="color:var(--muted)">± 0%</span>`;
+        d.vDays.innerHTML = diffDays < 0 && remain > 0 ? `<span style="color:var(--danger)">${Math.abs(diffDays)}日 超過</span>` : diffDays;
+        d.vPace.textContent = `${(p.total / Math.max(1, Math.ceil((deadDt - startDt) / 86400000))).toFixed(1)} / 日`;
+        
+        let totalAllMinutes = 0; (p.timeLogs || []).forEach(l => totalAllMinutes += l.totalMinutes);
+        d.vAvg.textContent = p.completed > 0 ? formatMin(totalAllMinutes / p.completed) : "-";
+        const todayTLog = (p.timeLogs || []).find(l => l.date === todayStr);
+        d.todayTime.textContent = `今日の作業時間: ${formatMin(todayTLog ? todayTLog.totalMinutes : 0)}`;
+
+        d.logList.innerHTML = ''; const dateMap = {};
+        (p.logs || []).forEach(l => { if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 }; dateMap[l.date].done = l.done; });
+        (p.timeLogs || []).forEach(l => { if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 }; dateMap[l.date].sessions = l.sessions; dateMap[l.date].time = l.totalMinutes; });
+        const dates = Object.keys(dateMap).sort((a,b) => new Date(b) - new Date(a));
+        
+        if(dates.length === 0) { d.logList.innerHTML = '<div style="color:var(--muted); text-align:center; padding:10px;">記録がないぞ</div>'; return; }
         dates.forEach(date => {
-            const dt=dateMap[date]; const div=document.createElement('div'); div.style.padding="8px 0"; div.style.borderBottom="1px solid var(--border)";
-            let timeText=dt.sessions.map(s=>`${s.start}~${s.end}`).join(' / ')||"時間記録なし";
-            div.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><strong style="color:var(--primary)">${date}</strong><span>${dt.done>0?`<span class="log-badge">+${dt.done}</span>`:''} <span style="color:var(--muted);font-size:0.9em;margin-left:5px;">計: ${formatMin(dt.time)}</span></span></div><div style="color:var(--muted);font-size:0.8em;">🕒 ${timeText}</div>`;
+            const dt = dateMap[date]; const div = document.createElement('div'); div.style.padding = "8px 0"; div.style.borderBottom = "1px solid var(--border)";
+            let timeText = dt.sessions.map(s => `${s.start}~${s.end}`).join(' / ') || "時間記録なし";
+            div.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><strong style="color:var(--primary)">${date}</strong><span>${dt.done > 0 ? `<span class="log-badge">+${dt.done}</span>` : ''} <span style="color:var(--muted); font-size:0.9em; margin-left:5px;">計: ${formatMin(dt.time)}</span></span></div><div style="color:var(--muted); font-size:0.8em;">🕒 ${timeText}</div>`;
             d.logList.appendChild(div);
         });
     }
