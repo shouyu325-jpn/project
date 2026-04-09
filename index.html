@@ -148,9 +148,157 @@
     .log-list { max-height: 150px; overflow-y: auto; font-size: 0.8em; }
     .log-badge { background: var(--info); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
     
+    /* ── 旧bgm-section: PC時のみ表示（後方互換） ── */
     .bgm-section { display: none; }
-    .btn-bgm { background: var(--border); color: var(--text); text-decoration: none; display: inline-block; padding: 8px 12px; border-radius: 6px; font-size: 0.85em; font-weight: bold; transition: 0.2s;}
-    .btn-bgm:hover { background: var(--muted); color: #fff; }
+    .btn-bgm { display: none; }
+
+    /* ══════════════════════════════════════════
+       PC専用アクションパネル（右カラム最上部）
+       作業開始ボタン + 進捗バー + BGMバー を一体化
+       スマホ(< 800px)では display:none
+    ══════════════════════════════════════════ */
+    .pc-action-panel { display: none; }
+
+    /* ── スマホ用 BGM折りたたみ ── */
+    .bgm-mobile {
+        margin-bottom: 14px;
+    }
+    .bgm-mobile summary {
+        font-size: 0.82em;
+        color: var(--muted);
+        padding: 4px 2px;
+        list-style: none;
+    }
+    .bgm-mobile summary::-webkit-details-marker { display: none; }
+    .bgm-mobile .bgm-mob-btns {
+        display: flex; gap: 8px; padding-top: 8px; flex-wrap: wrap;
+    }
+
+    /* ── BGMボタン共通 ── */
+    .btn-bgm-yt, .btn-bgm-env {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 7px 13px; border-radius: 8px; font-size: 0.82em;
+        font-weight: bold; cursor: pointer; border: 1px solid transparent;
+        text-decoration: none; transition: 0.18s; white-space: nowrap;
+        font-family: inherit;
+    }
+    .btn-bgm-yt {
+        background: #e8f0fe; color: #1a56bb; border-color: #c5d8f8;
+    }
+    .btn-bgm-yt:hover {
+        background: #d0e3fc; border-color: #1a56bb;
+        transform: translateY(-1px); box-shadow: 0 2px 8px rgba(26,86,187,0.15);
+    }
+    .btn-bgm-env {
+        background: var(--input-bg); color: var(--muted); border-color: var(--border);
+    }
+    .btn-bgm-env:hover {
+        background: var(--border); color: var(--text); transform: translateY(-1px);
+    }
+    .dark-mode .btn-bgm-yt {
+        background: #1a2a42; color: #90bbf5; border-color: #2d4870;
+    }
+    .dark-mode .btn-bgm-yt:hover { background: #243a5a; border-color: #90bbf5; }
+
+    @media (min-width: 800px) {
+        /* PC: アクションパネルを表示、左カラムタイマーBOXを非表示 */
+        .pc-action-panel { display: block; }
+        .grid-left .timer-box { display: none; }
+        .bgm-mobile { display: none; }
+        /* 既存bgm-sectionも引き続き非表示 */
+        .bgm-section { display: none !important; }
+        .quota-num { font-size: 6em; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
+
+        /* ── PC アクションパネル本体 ── */
+        .pc-action-panel {
+            background: var(--card);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 20px 22px 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.09);
+        }
+
+        /* ── 作業開始ボタン（PC大型） ── */
+        .btn-pc-timer {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.15em;
+            font-weight: 900;
+            border-radius: 10px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+            letter-spacing: 0.03em;
+        }
+        .btn-pc-timer:hover {
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+        }
+        .btn-pc-timer.stop { background: var(--danger); animation: pulse 2s infinite; }
+        .pc-timer-line {
+            text-align: center; font-family: monospace;
+            font-size: 0.85em; color: var(--muted);
+            margin-top: 6px; font-weight: bold;
+            min-height: 1.2em;
+        }
+        .pc-today-time-line {
+            text-align: center; font-size: 0.78em;
+            color: var(--muted); margin-top: 2px;
+        }
+
+        /* ── PC 進捗バー ── */
+        .pc-progress-wrap { margin-top: 16px; }
+        .pc-progress-head {
+            display: flex; justify-content: space-between;
+            align-items: baseline; margin-bottom: 6px;
+        }
+        .pc-progress-head-label {
+            font-size: 0.78em; font-weight: bold; color: var(--muted);
+        }
+        .pc-progress-pct {
+            font-size: 1.3em; font-weight: 900;
+            color: var(--primary); font-family: monospace;
+        }
+        .pc-bar-bg {
+            width: 100%; background: var(--border); height: 20px;
+            border-radius: 10px; overflow: hidden; position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .pc-bar-fill {
+            height: 100%; width: 0%; background: var(--primary);
+            transition: width 0.45s cubic-bezier(.4,0,.2,1), background-color 0.4s;
+            border-radius: 10px;
+        }
+        .pc-tbar-bg {
+            width: 100%; height: 4px; background: var(--border);
+            border-radius: 2px; overflow: hidden; margin-top: 5px;
+        }
+        .pc-tbar-fill {
+            height: 100%; width: 0%; background: var(--muted); transition: width 0.4s;
+        }
+        .pc-progress-meta {
+            display: flex; justify-content: space-between;
+            font-size: 0.74em; color: var(--muted); margin-top: 5px;
+        }
+
+        /* ── PC BGMバー（アクションパネル下部） ── */
+        .pc-bgm-bar {
+            display: flex; align-items: center; gap: 10px;
+            margin-top: 14px; padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+        .pc-bgm-label {
+            font-size: 0.76em; font-weight: bold;
+            color: var(--muted); white-space: nowrap; flex-shrink: 0;
+        }
+        .pc-bgm-btns { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+    }
 
     .date-display { text-align: center; font-size: 1.1em; font-weight: bold; color: var(--muted); margin-bottom: 15px; border-bottom: 2px dashed var(--border); padding-bottom: 10px;}
 
@@ -181,6 +329,85 @@
     /* ── バックアップ ── */
     .backup-section { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
     .backup-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+
+    /* ── ログ行インライン編集 ── */
+    .log-row { padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .log-row:last-child { border-bottom: none; }
+
+    /* 通常表示行 */
+    .log-row-view {
+        display: flex; justify-content: space-between;
+        align-items: center; gap: 6px;
+    }
+    .log-row-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .log-row-date { font-weight: bold; color: var(--primary); font-size: 0.88em; }
+    .log-row-meta { color: var(--muted); font-size: 0.78em; }
+    .log-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    /* 編集ボタン（小型・目立ちすぎない） */
+    .btn-log-edit {
+        background: none; border: 1px solid var(--border);
+        color: var(--muted); border-radius: 5px;
+        padding: 3px 7px; font-size: 0.75em; cursor: pointer;
+        transition: 0.15s; white-space: nowrap;
+    }
+    .btn-log-edit:hover { border-color: var(--primary); color: var(--primary); background: var(--input-bg); }
+
+    /* 削除ボタン（小型） */
+    .btn-log-del {
+        background: none; border: 1px solid transparent;
+        color: var(--muted); border-radius: 5px;
+        padding: 3px 6px; font-size: 0.75em; cursor: pointer;
+        transition: 0.15s;
+    }
+    .btn-log-del:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* 編集モード行 */
+    .log-row-edit {
+        display: none;
+        background: var(--input-bg);
+        border: 1px solid var(--primary);
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin: 4px 0;
+        gap: 8px;
+        flex-direction: column;
+    }
+    .log-row-edit.open { display: flex; }
+    .log-row-edit-head {
+        font-size: 0.82em; font-weight: bold; color: var(--primary);
+        margin-bottom: 4px;
+    }
+    .log-row-edit-body {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .log-row-edit-label { font-size: 0.8em; color: var(--muted); white-space: nowrap; }
+    .log-row-edit-input {
+        width: 80px; padding: 6px 8px; border: 1px solid var(--border);
+        border-radius: 6px; background: var(--card); color: var(--text);
+        font-size: 0.9em; text-align: center;
+    }
+    .log-row-edit-input:focus { border-color: var(--primary); outline: none; }
+    .log-edit-save {
+        padding: 6px 14px; border-radius: 6px; font-size: 0.82em;
+        font-weight: bold; background: var(--primary); color: #fff;
+        border: none; cursor: pointer; transition: 0.15s;
+    }
+    .log-edit-save:hover { filter: brightness(1.1); }
+    .log-edit-cancel {
+        padding: 6px 10px; border-radius: 6px; font-size: 0.82em;
+        font-weight: bold; background: none; color: var(--muted);
+        border: 1px solid var(--border); cursor: pointer; transition: 0.15s;
+    }
+    .log-edit-cancel:hover { background: var(--border); }
+    .log-edit-delete {
+        padding: 6px 10px; border-radius: 6px; font-size: 0.82em;
+        font-weight: bold; background: none; color: var(--danger);
+        border: 1px solid var(--danger); cursor: pointer; transition: 0.15s;
+        margin-left: auto;
+    }
+    .log-edit-delete:hover { background: var(--danger); color: #fff; }
+
 </style>
 </head>
 <body>
@@ -243,6 +470,15 @@
                     <div class="advice-msg" id="qAdvice" style="display:none;"></div>
                 </div>
 
+                <!-- スマホ用BGM折りたたみ（PC時は非表示） -->
+                <details class="bgm-mobile">
+                    <summary>🎧 BGM・作業音を選ぶ ▾</summary>
+                    <div class="bgm-mob-btns">
+                        <button class="btn-bgm-yt" onclick="openRandomYT()">▶ 作業用動画（ランダム）</button>
+                        <a href="https://amix-design.com/tl/tool-chill/" target="_blank" class="btn-bgm-env">🍃 環境音（作業用）</a>
+                    </div>
+                </details>
+
                 <div class="log-section" style="background: var(--quota-bg); border-color: var(--quota-border);">
                     <h3 style="font-size: 0.9em; color: var(--text);">📝 終わったら入力！</h3>
                     <div style="display: flex; gap: 10px;">
@@ -279,13 +515,45 @@
             </div>
 
             <div class="grid-right">
-                <div class="bgm-section">
-                    <h3 style="font-size: 0.9em; margin-bottom: 10px; color: var(--muted);">🎧 補助機能：作業音</h3>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <a href="https://amix-design.com/tl/tool-chill/" target="_blank" class="btn-bgm">🍃 環境音</a>
-                        <button class="btn-bgm" onclick="openRandomYT()">▶ 作業用BGM（ランダム再生）</button>
+
+                <!-- ══ PC専用アクションパネル（スマホでは display:none） ══ -->
+                <div class="pc-action-panel" id="pcActionPanel">
+
+                    <!-- ① 作業開始ボタン（大型） -->
+                    <button class="btn-pc-timer" id="btnTimerPc" onclick="toggleTimer()">▶ 作業開始</button>
+                    <div class="pc-timer-line" id="pcTimerLine"></div>
+                    <div class="pc-today-time-line" id="pcTodayTimeLine">今日の作業時間: 0分</div>
+
+                    <!-- ② 全体進捗バー -->
+                    <div class="pc-progress-wrap">
+                        <div class="pc-progress-head">
+                            <span class="pc-progress-head-label">📊 全体の進み具合</span>
+                            <span class="pc-progress-pct" id="pcBarPct">0%</span>
+                        </div>
+                        <div class="pc-bar-bg">
+                            <div class="pc-bar-fill" id="pcBarFill"></div>
+                        </div>
+                        <div class="pc-tbar-bg">
+                            <div class="pc-tbar-fill" id="pcTBarFill"></div>
+                        </div>
+                        <div class="pc-progress-meta">
+                            <span id="pcProgressMeta">完了: - / -</span>
+                            <span id="pcGapLabel"></span>
+                        </div>
+                    </div>
+
+                    <!-- ③ BGMバー（アクションパネル内、ボーダーで区切り） -->
+                    <div class="pc-bgm-bar">
+                        <span class="pc-bgm-label">🎧 BGM</span>
+                        <div class="pc-bgm-btns">
+                            <button class="btn-bgm-yt" onclick="openRandomYT()">▶ 作業用動画（ランダム）</button>
+                            <a href="https://amix-design.com/tl/tool-chill/" target="_blank" class="btn-bgm-env">🍃 環境音（作業用）</a>
+                        </div>
                     </div>
                 </div>
+
+                <!-- 旧bgm-section（非表示、後方互換のためタグは残す） -->
+                <div class="bgm-section" style="display:none!important;"></div>
 
                 <details class="log-section" style="margin-bottom: 15px;">
                     <summary style="font-size: 0.9em;">⚙️ 案件の設定を変更する</summary>
@@ -309,7 +577,10 @@
                 </div>
 
                 <div class="log-section">
-                    <h3 style="font-size: 0.9em;">📅 タイムライン (日別)</h3>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <h3 style="font-size:0.9em;margin:0;">📅 タイムライン (日別)</h3>
+                        <span style="font-size:0.72em;color:var(--muted);">✏️ 各行で修正できます</span>
+                    </div>
                     <div class="log-list" id="logList"></div>
                 </div>
 
@@ -522,22 +793,33 @@
         event.target.value = '';
     }
 
-    // ── YouTube 動画ID直リンクリスト（長時間・作業向け） ──
+    // ── YouTube 動画リスト ──
+    // 条件: ゲーム実況or雑談 / 長時間 / 過度に叫ばない / ストーリー依存しない
     const YT_VIDEOS = [
-        'jfKfPfyJRdk', // lofi hip hop radio - beats to relax/study
-        '4xDzrJKXOOY', // synthwave radio
-        'N9B8cJBCECk', // dark academia music
-        'DWcJFNfaw9c', // study music alpha waves
-        'rUxyKA_-grg', // Chillhop Music
-        '5qap5aO4i9A', // lofi hip hop radio
-        'lTRiuFIWV54', // coffee shop ambience
-        'h4wxA3W5Os4', // rain and thunder sounds
-        '36YnV9STBqc', // piano study music
-        'sjkrrmBnpGE', // lo-fi beats study
+        // ── ローグライク・穏やか系実況 ──
+        'hFmihPblmxA', // Slay the Spire 長時間実況まとめ
+        'RByKl_Ix_bs', // Vampire Survivors ながら視聴向け
+        'b6c8SWIdXnU', // Dead Cells 作業向き長時間
+        'LZaX1C_APSE', // Into the Breach 静かめ実況
+        'kicLeU-oO_w', // Hades ゆるゆる実況
+        // ── 雑談・トーク系（叫ばない穏やか配信） ──
+        'qc-2jTYkw3E', // ゆるゲー雑談配信アーカイブ
+        'wDchsz8nmbo', // のんびりゲーム雑談
+        // ── lofi / 作業BGM動画（長時間・定番） ──
+        'jfKfPfyJRdk', // lofi hip hop radio – beats to relax/study to
+        '4xDzrJKXOOY', // synthwave radio – beats to chill/game to
+        'rUxyKA_-grg', // Chillhop Music – jazzy beats
+        '5qap5aO4i9A', // lofi hip hop radio – beats to study/relax
+        'DWcJFNfaw9c', // Study Music Alpha Waves 3h
+        'sjkrrmBnpGE', // Lo-fi Beats 1h
+        'N9B8cJBCECk', // Dark Academia Music Playlist
+        '36YnV9STBqc', // Piano Study Music 3h
+        'lTRiuFIWV54', // Coffee Shop Ambience & Jazz
+        'h4wxA3W5Os4', // Rain & Thunder Sounds 8h
     ];
     function openRandomYT() {
         const id = YT_VIDEOS[Math.floor(Math.random() * YT_VIDEOS.length)];
-        window.open(`https://www.youtube.com/watch?v=${id}`, '_blank');
+        window.open('https://www.youtube.com/watch?v=' + id, '_blank');
     }
 
     // --- DOM要素 ---
@@ -928,12 +1210,29 @@
     function updateTimerUI() {
         if(!appData.currentId || !vDetail.classList.contains('active')) return;
         const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+
+        const pcBtn  = document.getElementById('btnTimerPc');
+        const pcLine = document.getElementById('pcTimerLine');
+
         if(p.activeSessionStart) {
-            d.btnTimer.textContent = "■ 作業終了"; d.btnTimer.classList.add('stop'); d.timerBox.classList.add('active');
             const diffMs = Date.now() - p.activeSessionStart;
-            d.timerDisplay.textContent = `${Math.floor(diffMs/3600000).toString().padStart(2,'0')}:${Math.floor((diffMs%3600000)/60000).toString().padStart(2,'0')}:${Math.floor((diffMs%60000)/1000).toString().padStart(2,'0')}`;
+            const hh = Math.floor(diffMs/3600000).toString().padStart(2,'0');
+            const mm = Math.floor((diffMs%3600000)/60000).toString().padStart(2,'0');
+            const ss = Math.floor((diffMs%60000)/1000).toString().padStart(2,'0');
+            // スマホ用
+            d.btnTimer.textContent = "■ 作業終了"; d.btnTimer.classList.add('stop');
+            d.timerBox.classList.add('active');
+            d.timerDisplay.textContent = `${hh}:${mm}:${ss}`;
+            // PC用
+            if(pcBtn)  { pcBtn.textContent = "■ 作業終了"; pcBtn.classList.add('stop'); }
+            if(pcLine) { pcLine.textContent = `⏱ ${hh}:${mm}:${ss}`; }
         } else {
-            d.btnTimer.textContent = "▶ 作業開始"; d.btnTimer.classList.remove('stop'); d.timerBox.classList.remove('active'); d.timerDisplay.textContent = "00:00:00";
+            // スマホ用
+            d.btnTimer.textContent = "▶ 作業開始"; d.btnTimer.classList.remove('stop');
+            d.timerBox.classList.remove('active'); d.timerDisplay.textContent = "00:00:00";
+            // PC用
+            if(pcBtn)  { pcBtn.textContent = "▶ 作業開始"; pcBtn.classList.remove('stop'); }
+            if(pcLine) { pcLine.textContent = ""; }
         }
     }
 
@@ -966,8 +1265,29 @@
             else { d.qAdvice.style.display = 'none'; }
         }
 
+        // スマホ用進捗バー
         d.bar.style.width = `${pct}%`; d.barText.textContent = `${pct.toFixed(1)}%`; d.tBar.style.width = `${timePct}%`;
         if (gap < -2) d.bar.style.background = 'var(--danger)'; else if (gap > 2) d.bar.style.background = '#8bc34a'; else d.bar.style.background = 'var(--muted)';
+
+        // ── PC用アクションパネル: 進捗バー同期 ──
+        const pcFill   = document.getElementById('pcBarFill');
+        const pcPct    = document.getElementById('pcBarPct');
+        const pcTFill  = document.getElementById('pcTBarFill');
+        const pcMeta   = document.getElementById('pcProgressMeta');
+        const pcGapLbl = document.getElementById('pcGapLabel');
+        const pcTTLine = document.getElementById('pcTodayTimeLine');
+        if(pcFill) {
+            pcFill.style.width = `${pct}%`;
+            pcFill.style.background = gap < -2 ? 'var(--danger)' : gap > 2 ? '#8bc34a' : 'var(--primary)';
+        }
+        if(pcPct)    pcPct.textContent    = `${pct.toFixed(1)}%`;
+        if(pcTFill)  pcTFill.style.width  = `${timePct}%`;
+        if(pcMeta)   pcMeta.textContent   = `完了: ${p.completed} / ${p.total}　残り ${remain}`;
+        if(pcGapLbl) {
+            if(gap < -0.5)      pcGapLbl.innerHTML = `<span style="color:var(--danger);font-weight:bold;">▼ ${Math.abs(gap).toFixed(1)}% 遅れ</span>`;
+            else if(gap > 0.5)  pcGapLbl.innerHTML = `<span style="color:#8bc34a;font-weight:bold;">▲ ${gap.toFixed(1)}% 先行</span>`;
+            else                pcGapLbl.innerHTML = `<span style="color:var(--muted)">± 0%</span>`;
+        }
 
         if (gap < -0.5) d.vGap.innerHTML = `<span style="color:var(--danger); font-weight:bold;">▼ ${Math.abs(gap).toFixed(1)}%</span>`; else if (gap > 0.5) d.vGap.innerHTML = `<span style="color:#8bc34a; font-weight:bold;">▲ ${gap.toFixed(1)}%</span>`; else d.vGap.innerHTML = `<span style="color:var(--muted)">± 0%</span>`;
         d.vDays.innerHTML = diffDays < 0 && remain > 0 ? `<span style="color:var(--danger)">${Math.abs(diffDays)}日 超過</span>` : diffDays;
@@ -977,19 +1297,124 @@
         d.vAvg.textContent = p.completed > 0 ? formatMin(totalAllMinutes / p.completed) : "-";
         const todayTLog = (p.timeLogs || []).find(l => l.date === todayStr);
         d.todayTime.textContent = `今日の作業時間: ${formatMin(todayTLog ? todayTLog.totalMinutes : 0)}`;
+        // PC用今日の作業時間
+        const pcTTLine2 = document.getElementById('pcTodayTimeLine');
+        if(pcTTLine2) pcTTLine2.textContent = `今日の作業時間: ${formatMin(todayTLog ? todayTLog.totalMinutes : 0)}`;
 
-        d.logList.innerHTML = ''; const dateMap = {};
-        (p.logs || []).forEach(l => { if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 }; dateMap[l.date].done = l.done; });
-        (p.timeLogs || []).forEach(l => { if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 }; dateMap[l.date].sessions = l.sessions; dateMap[l.date].time = l.totalMinutes; });
-        const dates = Object.keys(dateMap).sort((a,b) => new Date(b) - new Date(a));
-        
-        if(dates.length === 0) { d.logList.innerHTML = '<div style="color:var(--muted); text-align:center; padding:10px;">記録がないぞ</div>'; return; }
-        dates.forEach(date => {
-            const dt = dateMap[date]; const div = document.createElement('div'); div.style.padding = "8px 0"; div.style.borderBottom = "1px solid var(--border)";
-            let timeText = dt.sessions.map(s => `${s.start}~${s.end}`).join(' / ') || "時間記録なし";
-            div.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><strong style="color:var(--primary)">${date}</strong><span>${dt.done > 0 ? `<span class="log-badge">+${dt.done}</span>` : ''} <span style="color:var(--muted); font-size:0.9em; margin-left:5px;">計: ${formatMin(dt.time)}</span></span></div><div style="color:var(--muted); font-size:0.8em;">🕒 ${timeText}</div>`;
-            d.logList.appendChild(div);
+        // ── タイムライン描画（編集ボタン付き） ──
+        d.logList.innerHTML = '';
+        const dateMap = {};
+        (p.logs || []).forEach(l => {
+            if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 };
+            dateMap[l.date].done = l.done;
         });
+        (p.timeLogs || []).forEach(l => {
+            if(!dateMap[l.date]) dateMap[l.date] = { done: 0, sessions: [], time: 0 };
+            dateMap[l.date].sessions = l.sessions;
+            dateMap[l.date].time = l.totalMinutes;
+        });
+        const dates = Object.keys(dateMap).sort((a,b) => new Date(b) - new Date(a));
+
+        if(dates.length === 0) {
+            d.logList.innerHTML = '<div style="color:var(--muted);text-align:center;padding:10px;">記録がないぞ</div>';
+            return;
+        }
+
+        dates.forEach(date => {
+            const dt = dateMap[date];
+            const timeText = dt.sessions.map(s => `${s.start}~${s.end}`).join(' / ') || "時間記録なし";
+            const rowId = 'logrow-' + date;
+
+            const row = document.createElement('div');
+            row.className = 'log-row';
+            row.id = rowId;
+            row.innerHTML = `
+                <!-- 通常表示 -->
+                <div class="log-row-view">
+                    <div class="log-row-left">
+                        <span class="log-row-date">${date}</span>
+                        <span class="log-row-meta">
+                            ${dt.done > 0 ? `<span class="log-badge">+${dt.done}</span>` : '<span style="color:var(--muted)">作業量 0</span>'}
+                            <span style="margin-left:6px;">計: ${formatMin(dt.time)}</span>
+                        </span>
+                        <span class="log-row-meta">🕒 ${timeText}</span>
+                    </div>
+                    <div class="log-row-actions">
+                        <button class="btn-log-edit" onclick="openLogEdit('${date}')">✏️ 修正</button>
+                        <button class="btn-log-del" onclick="deleteLog('${date}')" title="このログを削除">🗑</button>
+                    </div>
+                </div>
+                <!-- 編集モード（初期非表示） -->
+                <div class="log-row-edit" id="edit-${date}">
+                    <div class="log-row-edit-head">📝 ${date} の記録を修正</div>
+                    <div class="log-row-edit-body">
+                        <span class="log-row-edit-label">作業量</span>
+                        <input class="log-row-edit-input" type="number" min="0"
+                               id="editval-${date}" value="${dt.done}">
+                        <button class="log-edit-save" onclick="saveLogEdit('${date}')">保存</button>
+                        <button class="log-edit-cancel" onclick="closeLogEdit('${date}')">キャンセル</button>
+                        <button class="log-edit-delete" onclick="deleteLog('${date}')">🗑 削除</button>
+                    </div>
+                </div>`;
+            d.logList.appendChild(row);
+        });
+    }
+
+    // ── ログ編集ヘルパー関数 ──
+    function openLogEdit(date) {
+        // 他の開いている編集行を閉じる
+        document.querySelectorAll('.log-row-edit.open').forEach(el => el.classList.remove('open'));
+        const editRow = document.getElementById('edit-' + date);
+        if(editRow) {
+            editRow.classList.add('open');
+            const input = document.getElementById('editval-' + date);
+            if(input) { input.focus(); input.select(); }
+        }
+    }
+
+    function closeLogEdit(date) {
+        const editRow = document.getElementById('edit-' + date);
+        if(editRow) editRow.classList.remove('open');
+    }
+
+    function saveLogEdit(date) {
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const input = document.getElementById('editval-' + date);
+        const newVal = Math.max(0, parseInt(input ? input.value : '0') || 0);
+
+        const log = (p.logs || []).find(l => l.date === date);
+        const oldVal = log ? log.done : 0;
+        const diff = newVal - oldVal;
+
+        if(newVal === 0) {
+            // 0にする場合はログ行ごと削除
+            if(log) p.logs = p.logs.filter(l => l.date !== date);
+            p.completed = Math.max(0, p.completed - oldVal);
+        } else if(log) {
+            log.done = newVal;
+            log.totalCompleted = (log.totalCompleted || p.completed) + diff;
+            p.completed = Math.max(0, Math.min(p.total, p.completed + diff));
+        } else {
+            if(!p.logs) p.logs = [];
+            p.logs.push({ date, done: newVal, totalCompleted: p.completed + newVal });
+            p.completed = Math.min(p.total, p.completed + newVal);
+        }
+
+        saveData();
+        refreshDetail();
+    }
+
+    function deleteLog(date) {
+        if(!confirm(`${date} の記録を削除しますか？
+（完了数も連動して調整されます）`)) return;
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const log = (p.logs || []).find(l => l.date === date);
+        if(log) {
+            p.completed = Math.max(0, p.completed - log.done);
+            p.logs = p.logs.filter(l => l.date !== date);
+        }
+        saveData();
+        refreshDetail();
     }
 
     window.onload = init;
