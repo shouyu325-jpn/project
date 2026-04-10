@@ -499,6 +499,62 @@
     }
     .hero-quota-badge.hero-quota-done .hero-quota-num { color: #fff; }
 
+
+    /* ── 締切警告バナー ── */
+    .deadline-alert-bar {
+        display: flex; align-items: center; gap: 10px;
+        border-radius: 10px; padding: 11px 15px;
+        margin-bottom: 14px; font-size: 0.88em; font-weight: bold;
+        cursor: pointer; transition: 0.15s;
+        animation: alert-pop 0.3s ease;
+    }
+    @keyframes alert-pop {
+        from { opacity:0; transform:translateY(-6px); }
+        to   { opacity:1; transform:translateY(0); }
+    }
+    .deadline-alert-bar:hover { filter: brightness(0.95); }
+    .deadline-alert-bar.overdue {
+        background: rgba(183,28,28,0.1); border: 1.5px solid #b71c1c; color: #b71c1c;
+    }
+    .deadline-alert-bar.today {
+        background: rgba(229,57,53,0.1); border: 1.5px solid var(--danger); color: var(--danger);
+        animation: alert-pop 0.3s ease, blink-badge 2s ease-in-out 1s infinite;
+    }
+    .deadline-alert-bar.urgent {
+        background: rgba(251,140,0,0.1); border: 1.5px solid var(--warning); color: var(--warning);
+    }
+    .deadline-alert-icon { font-size: 1.2em; flex-shrink: 0; }
+    .deadline-alert-text { flex: 1; line-height: 1.4; }
+    .deadline-alert-arrow { opacity: 0.6; font-size: 0.9em; }
+
+
+    /* ── プロジェクトタイトル編集フィールド ── */
+    .project-title-wrap {
+        position: relative; margin-bottom: 20px;
+    }
+    .project-title-wrap::after {
+        content: '✎';
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        color: var(--muted); font-size: 0.9em; pointer-events: none;
+        opacity: 0.5;
+    }
+    #pTitle {
+        font-size: 1.3em; font-weight: bold;
+        background: transparent;
+        border: none; border-bottom: 2px solid var(--border);
+        border-radius: 0;
+        padding: 6px 32px 6px 4px;
+        transition: border-color 0.2s;
+        width: 100%; box-sizing: border-box;
+    }
+    #pTitle:focus {
+        border-bottom-color: var(--primary);
+        background: var(--input-bg);
+        border-radius: 6px 6px 0 0;
+        outline: none; box-shadow: none;
+    }
+    #pTitle:hover { border-bottom-color: var(--primary); }
+
 </style>
 </head>
 <body>
@@ -518,6 +574,7 @@
             <button class="btn btn-primary" onclick="createNewProject()">＋ 新規作成</button>
         </div>
 
+        <div id="deadlineAlertArea"></div>
         <div class="home-grid">
             <!-- 左カラム: 最優先案件 + カレンダー -->
             <div class="home-col-left">
@@ -534,10 +591,12 @@
 
             <!-- 右カラム: 案件一覧 + アーカイブ -->
             <div class="home-col-right">
-                <details id="otherProjectsArea">
-                    <summary>その他の案件（詳細を見る）</summary>
+                <div id="otherProjectsArea" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <h3 style="font-size:0.9em;margin:0;color:var(--muted);">📋 その他の案件</h3>
+                    </div>
                     <div id="projectList"></div>
-                </details>
+                </div>
                 <div style="margin-top: 20px;">
                     <h3 style="font-size: 0.9em; color: var(--muted);">アーカイブ</h3>
                     <div id="archiveList"></div>
@@ -550,7 +609,9 @@
         <button class="btn" onclick="goToList()" style="margin-bottom: 15px;">◀ ホームに戻る</button>
         
         <div class="date-display" id="displayTodayDate">📅 今日は -月-日 (-)</div>
-        <input type="text" id="pTitle" style="font-size: 1.3em; font-weight: bold; margin-bottom: 20px;" placeholder="プロジェクト名" onchange="saveDetail()">
+        <div class="project-title-wrap">
+            <input type="text" id="pTitle" placeholder="📌 プロジェクト名（クリックで編集）" onchange="saveDetail()">
+        </div>
 
         <div class="detail-grid">
             <div class="grid-left">
@@ -1254,10 +1315,49 @@
 
     function renderList() {
         domHero.innerHTML = ''; domList.innerHTML = ''; domArchList.innerHTML = '';
-        domOtherDetails.style.display = 'none';
+        domOtherDetails.style.display = 'none'; domOtherDetails.open = undefined;
+
+        // ── 締切警告バナー描画 ──
+        const alertArea = document.getElementById('deadlineAlertArea');
+        if(alertArea) {
+            alertArea.innerHTML = '';
+            const today = getToday(); const todayStr = getTodayStr();
+            const alerts = [];
+            appData.projects.forEach(p => {
+                if(p.isArchived || p.completed >= p.total) return;
+                const diff = Math.ceil((new Date(p.deadline) - today) / 86400000);
+                if(diff < 0)      alerts.push({ p, diff, cls:'overdue', icon:'🚨' });
+                else if(diff===0) alerts.push({ p, diff, cls:'today',   icon:'⏰' });
+                else if(diff<=3)  alerts.push({ p, diff, cls:'urgent',  icon:'⚠️' });
+            });
+            // 深刻度が高い順にソート
+            alerts.sort((a,b) => a.diff - b.diff);
+            alerts.slice(0,3).forEach(({ p, diff, cls, icon }) => {
+                const msg = diff < 0
+                    ? `締切を <strong>${Math.abs(diff)}日 超過</strong> しています — ${p.title||'無題'}`
+                    : diff === 0
+                    ? `本日締切！ — ${p.title||'無題'}`
+                    : `締切まで残り <strong>${diff}日</strong> — ${p.title||'無題'}`;
+                const bar = document.createElement('div');
+                bar.className = `deadline-alert-bar ${cls}`;
+                bar.innerHTML = `<span class="deadline-alert-icon">${icon}</span><span class="deadline-alert-text">${msg}</span><span class="deadline-alert-arrow">▶ 開く</span>`;
+                bar.onclick = () => openProject(p.id);
+                alertArea.appendChild(bar);
+            });
+        }
 
         if(appData.projects.length === 0) {
-            domHero.innerHTML = '<p style="text-align:center; color:var(--muted);">案件がないぞ！「新規作成」から始めよう！</p>';
+            domHero.innerHTML = `
+                <div style="text-align:center;padding:40px 20px 30px;color:var(--muted);">
+                    <div style="font-size:3em;margin-bottom:16px;">📋</div>
+                    <div style="font-size:1.1em;font-weight:bold;color:var(--text);margin-bottom:8px;">案件がまだありません</div>
+                    <div style="font-size:0.88em;margin-bottom:24px;line-height:1.6;">
+                        右上の「＋ 新規作成」から<br>最初の案件を登録してみましょう！
+                    </div>
+                    <button class="btn btn-primary" style="padding:12px 28px;font-size:1em;" onclick="createNewProject()">
+                        ＋ 最初の案件を作る
+                    </button>
+                </div>`;
             return;
         }
 
@@ -1312,8 +1412,6 @@
         }
         if(others.length > 0) {
             domOtherDetails.style.display = 'block';
-            // PCでは自動展開
-            if(window.innerWidth >= 768) domOtherDetails.open = true;
             others.forEach(p => renderCard(p, domList));
         }
     }
@@ -1506,16 +1604,23 @@
             const row = document.createElement('div');
             row.className = 'log-row';
             row.id = rowId;
+            // 日付を読みやすく変換
+            const dateParts = date.split('-');
+            const dateObj2 = new Date(date);
+            const dayNames = ['日','月','火','水','木','金','土'];
+            const friendlyDate = `${parseInt(dateParts[1])}/${parseInt(dateParts[2])} (${dayNames[dateObj2.getDay()]})`;
+
             row.innerHTML = `
                 <!-- 通常表示 -->
                 <div class="log-row-view">
                     <div class="log-row-left">
-                        <span class="log-row-date">${date}</span>
+                        <span class="log-row-date">${friendlyDate}</span>
                         <span class="log-row-meta">
-                            ${dt.done > 0 ? `<span class="log-badge">+${dt.done}</span>` : '<span style="color:var(--muted)">作業量 0</span>'}
-                            <span style="margin-left:6px;">計: ${formatMin(dt.time)}</span>
+                            ${dt.done > 0 ? `<span class="log-badge">+${dt.done}</span>` : ''}
+                            ${dt.time > 0 ? `<span style="margin-left:4px;">⏱ ${formatMin(dt.time)}</span>` : ''}
+                            ${dt.done === 0 && dt.time === 0 ? '<span style="color:var(--muted);font-size:0.9em;">（記録のみ）</span>' : ''}
                         </span>
-                        <span class="log-row-meta">🕒 ${timeText}</span>
+                        ${dt.sessions.length > 0 ? `<span class="log-row-meta" style="color:var(--muted)">${dt.sessions.map(s => s.start+'~'+s.end).join(' / ')}</span>` : ''}
                     </div>
                     <div class="log-row-actions">
                         <button class="btn-log-edit" onclick="openLogEdit('${date}')">✏️ 修正</button>
