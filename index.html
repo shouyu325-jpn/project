@@ -306,6 +306,8 @@
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
         .bgm-section { display: block; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 15px;}
         .quota-num { font-size: 6em; }
+        /* PC時：左カラム進捗バーは右パネルと重複するため非表示 */
+        .progress-section-left { display: none; }
     }
 
     /* ── モーダル共通 ── */
@@ -317,14 +319,69 @@
     .modal-actions { display:flex; gap:10px; margin-top:20px; }
     .modal-actions .btn { flex:1; text-align:center; }
 
-    /* ── テーマスウォッチ ── */
-    .theme-picker-section { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px; }
-    .theme-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:12px; }
-    .theme-swatch-card { border:2px solid var(--border); border-radius:10px; padding:8px 4px; cursor:pointer; text-align:center; transition:0.2s; }
-    .theme-swatch-card:hover { border-color:var(--primary); transform:translateY(-2px); }
-    .theme-swatch-card.active { border-color:var(--primary); box-shadow:0 0 0 2px var(--primary); }
-    .swatch-dot { width:28px; height:28px; border-radius:50%; margin:0 auto 4px; }
-    .swatch-label { font-size:0.7em; font-weight:bold; color:var(--muted); }
+    /* ── テーマピッカー ── */
+    .theme-picker-section { background:var(--input-bg); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:14px; }
+    .theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+
+    /* カード全体がプレビュー */
+    .theme-swatch-card {
+        border: 2px solid transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        position: relative;
+    }
+    .theme-swatch-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.18); }
+    .theme-swatch-card.active {
+        border-color: #fff;
+        box-shadow: 0 0 0 3px var(--primary), 0 6px 16px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+    }
+
+    /* 背景プレビュー部分 */
+    .swatch-preview {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 8px;
+    }
+    /* プライマリ色のドット */
+    .swatch-primary-dot {
+        width: 18px; height: 18px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.5);
+        flex-shrink: 0;
+    }
+    /* カード色のミニ矩形 */
+    .swatch-card-mini {
+        flex: 1; height: 22px; border-radius: 5px;
+        border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    /* ラベル部分 */
+    .swatch-label-bar {
+        padding: 5px 8px;
+        font-size: 0.72em;
+        font-weight: bold;
+        text-align: center;
+        border-top: 1px solid rgba(0,0,0,0.08);
+    }
+
+    /* チェックマーク（選択中） */
+    .swatch-check {
+        display: none;
+        position: absolute; top: 5px; right: 5px;
+        width: 18px; height: 18px; border-radius: 50%;
+        background: #fff;
+        color: #333;
+        font-size: 10px;
+        align-items: center; justify-content: center;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .theme-swatch-card.active .swatch-check { display: flex; }
 
     /* ── バックアップ ── */
     .backup-section { background:var(--input-bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
@@ -415,10 +472,7 @@
 <div class="container">
     <div class="header">
         <h1 id="appTitle">進捗管理ホーム</h1>
-        <div style="display:flex;gap:4px;">
-            <button class="btn-icon" id="themeToggleBtn" onclick="toggleDark()" title="ダーク/ライト切替">🌙</button>
-            <button class="btn-icon" onclick="openSettingsModal()" title="設定・テーマ">⚙️</button>
-        </div>
+        <button class="btn-icon" onclick="openSettingsModal()" title="設定・テーマ">⚙️</button>
     </div>
 
     <div id="view-list" class="view active">
@@ -487,7 +541,7 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 20px; margin-bottom: 20px;">
+                <div class="progress-section-left" style="margin-top: 20px; margin-bottom: 20px;">
                     <div style="font-size: 0.8em; margin-bottom: 5px; color: var(--muted); font-weight: bold;">全体の進み具合</div>
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fill" id="pBar" style="background: var(--primary);"></div>
@@ -595,12 +649,12 @@
 
 <!-- ══ 設定モーダル ══ -->
 <div id="settingsModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:480px;">
+  <div class="modal-box" style="max-width:520px;">
     <div class="modal-title">⚙️ 設定</div>
 
     <div class="theme-picker-section">
-      <div style="font-size:0.9em;font-weight:bold;margin-bottom:2px;">🎨 テーマカラー</div>
-      <div style="font-size:0.8em;color:var(--muted);">変更は即時反映・次回も維持されます</div>
+      <div style="font-size:0.9em;font-weight:bold;margin-bottom:2px;">🎨 テーマ</div>
+      <div style="font-size:0.8em;color:var(--muted);">背景・カード・カラーが一括で変わります。次回も維持されます</div>
       <div class="theme-grid" id="themeGrid"></div>
     </div>
 
@@ -629,77 +683,127 @@
     // 🎨 テーマ定義（全CSS変数をまとめて管理）
     // ══════════════════════════════════════════
     const THEMES = [
+        // ── ライト系（淡い背景で個性） ──
         {
-            id:'green', label:'グリーン', dot:'#4CAF50',
+            id:'sage', label:'セージ', dot:'#4CAF50',
             primary:'#4CAF50', primaryDark:'#388E3C',
-            bg:'#f0f4f0', card:'#ffffff', inputBg:'#ffffff',
-            text:'#2b2b2b', muted:'#888888', border:'#e0e0e0',
+            bg:'#eef4ee', card:'#f7fbf7', inputBg:'#ffffff',
+            text:'#243024', muted:'#6a8a6a', border:'#c8ddc8',
             quotaBg:'#fff8e1', quotaBorder:'#ffca28', quotaText:'#333', quotaNum:'#f57f17',
-            calBg:'#ffffff', calBorder:'#eeeeee', calTodayBg:'#e8f5e9', calTodayBorder:'#4CAF50',
+            calBg:'#f7fbf7', calBorder:'#c8ddc8', calTodayBg:'#d4edda', calTodayBorder:'#4CAF50',
             quotaMetA:'#4CAF50', quotaMetB:'#81c784',
+            labelBg:'#4CAF50', labelText:'#fff',
         },
         {
-            id:'blue', label:'ブルー', dot:'#1976D2',
-            primary:'#1976D2', primaryDark:'#1565C0',
-            bg:'#f0f4fa', card:'#ffffff', inputBg:'#ffffff',
-            text:'#1a2a3a', muted:'#789', border:'#d0dce8',
-            quotaBg:'#e3f2fd', quotaBorder:'#90caf9', quotaText:'#1a2a3a', quotaNum:'#1565C0',
-            calBg:'#ffffff', calBorder:'#d0dce8', calTodayBg:'#e3f2fd', calTodayBorder:'#1976D2',
-            quotaMetA:'#1976D2', quotaMetB:'#64b5f6',
+            id:'sakura', label:'さくら', dot:'#e91e8c',
+            primary:'#e91e8c', primaryDark:'#c2185b',
+            bg:'#fdf0f6', card:'#fff5f9', inputBg:'#fff8fb',
+            text:'#3a1028', muted:'#b06080', border:'#f0c0d8',
+            quotaBg:'#fce4ec', quotaBorder:'#f48fb1', quotaText:'#3a1028', quotaNum:'#c2185b',
+            calBg:'#fff5f9', calBorder:'#f0c0d8', calTodayBg:'#fce4ec', calTodayBorder:'#e91e8c',
+            quotaMetA:'#e91e8c', quotaMetB:'#f48fb1',
+            labelBg:'#e91e8c', labelText:'#fff',
         },
         {
-            id:'orange', label:'オレンジ', dot:'#E65100',
-            primary:'#E65100', primaryDark:'#bf360c',
-            bg:'#fdf6f0', card:'#ffffff', inputBg:'#ffffff',
-            text:'#2c1a0a', muted:'#9a7860', border:'#e8d4c0',
-            quotaBg:'#fff3e0', quotaBorder:'#ffb74d', quotaText:'#2c1a0a', quotaNum:'#E65100',
-            calBg:'#ffffff', calBorder:'#e8d4c0', calTodayBg:'#fff3e0', calTodayBorder:'#E65100',
-            quotaMetA:'#E65100', quotaMetB:'#ffb74d',
+            id:'sky', label:'スカイ', dot:'#0288d1',
+            primary:'#0288d1', primaryDark:'#01579b',
+            bg:'#e8f4fd', card:'#f0f8ff', inputBg:'#f7fbff',
+            text:'#0a1e30', muted:'#5a8aaa', border:'#b8d8f0',
+            quotaBg:'#e1f5fe', quotaBorder:'#81d4fa', quotaText:'#0a1e30', quotaNum:'#0277bd',
+            calBg:'#f0f8ff', calBorder:'#b8d8f0', calTodayBg:'#e1f5fe', calTodayBorder:'#0288d1',
+            quotaMetA:'#0288d1', quotaMetB:'#4fc3f7',
+            labelBg:'#0288d1', labelText:'#fff',
         },
         {
-            id:'purple', label:'パープル', dot:'#7B1FA2',
-            primary:'#7B1FA2', primaryDark:'#6a1b9a',
-            bg:'#f8f0fc', card:'#ffffff', inputBg:'#ffffff',
-            text:'#2a0a3a', muted:'#907aa0', border:'#e0d0ec',
-            quotaBg:'#f3e5f5', quotaBorder:'#ce93d8', quotaText:'#2a0a3a', quotaNum:'#7B1FA2',
-            calBg:'#ffffff', calBorder:'#e0d0ec', calTodayBg:'#f3e5f5', calTodayBorder:'#7B1FA2',
-            quotaMetA:'#7B1FA2', quotaMetB:'#ce93d8',
+            id:'peach', label:'ピーチ', dot:'#e65100',
+            primary:'#e65100', primaryDark:'#bf360c',
+            bg:'#fdf1eb', card:'#fff7f2', inputBg:'#fff9f6',
+            text:'#2c1206', muted:'#a06040', border:'#f0caa8',
+            quotaBg:'#fff3e0', quotaBorder:'#ffb74d', quotaText:'#2c1206', quotaNum:'#e65100',
+            calBg:'#fff7f2', calBorder:'#f0caa8', calTodayBg:'#fff3e0', calTodayBorder:'#e65100',
+            quotaMetA:'#e65100', quotaMetB:'#ff8a65',
+            labelBg:'#e65100', labelText:'#fff',
         },
         {
-            id:'teal', label:'ティール', dot:'#00796B',
-            primary:'#00796B', primaryDark:'#004d40',
-            bg:'#f0faf8', card:'#ffffff', inputBg:'#ffffff',
-            text:'#0a2a28', muted:'#6a9a96', border:'#c0e0dc',
-            quotaBg:'#e0f2f1', quotaBorder:'#80cbc4', quotaText:'#0a2a28', quotaNum:'#00796B',
-            calBg:'#ffffff', calBorder:'#c0e0dc', calTodayBg:'#e0f2f1', calTodayBorder:'#00796B',
-            quotaMetA:'#00796B', quotaMetB:'#80cbc4',
+            id:'lavender', label:'ラベンダー', dot:'#7b1fa2',
+            primary:'#7b1fa2', primaryDark:'#6a1b9a',
+            bg:'#f5eefb', card:'#faf5fe', inputBg:'#fdf9ff',
+            text:'#200a30', muted:'#9070b0', border:'#dcc0ec',
+            quotaBg:'#f3e5f5', quotaBorder:'#ce93d8', quotaText:'#200a30', quotaNum:'#7b1fa2',
+            calBg:'#faf5fe', calBorder:'#dcc0ec', calTodayBg:'#ede0f8', calTodayBorder:'#7b1fa2',
+            quotaMetA:'#7b1fa2', quotaMetB:'#ba68c8',
+            labelBg:'#7b1fa2', labelText:'#fff',
         },
         {
-            id:'dark', label:'ダーク', dot:'#90a4ae',
-            primary:'#90a4ae', primaryDark:'#607d8b',
-            bg:'#121212', card:'#1e1e1e', inputBg:'#2c2c2c',
-            text:'#e0e0e0', muted:'#aaaaaa', border:'#333333',
-            quotaBg:'#263238', quotaBorder:'#546e7a', quotaText:'#e0e0e0', quotaNum:'#90a4ae',
-            calBg:'#1e1e1e', calBorder:'#333333', calTodayBg:'#1b3a3a', calTodayBorder:'#90a4ae',
-            quotaMetA:'#607d8b', quotaMetB:'#90a4ae',
+            id:'mint', label:'ミント', dot:'#00796b',
+            primary:'#00796b', primaryDark:'#004d40',
+            bg:'#e8f8f5', card:'#f2fcf9', inputBg:'#f7fefb',
+            text:'#061e1a', muted:'#4a8a84', border:'#a8ddd4',
+            quotaBg:'#e0f2f1', quotaBorder:'#80cbc4', quotaText:'#061e1a', quotaNum:'#00796b',
+            calBg:'#f2fcf9', calBorder:'#a8ddd4', calTodayBg:'#e0f2f1', calTodayBorder:'#00796b',
+            quotaMetA:'#00796b', quotaMetB:'#4db6ac',
+            labelBg:'#00796b', labelText:'#fff',
+        },
+        // ── ダーク系（個性的な深み） ──
+        {
+            id:'obsidian', label:'オブシディアン', dot:'#9e9e9e',
+            primary:'#9e9e9e', primaryDark:'#757575',
+            bg:'#111111', card:'#1c1c1c', inputBg:'#252525',
+            text:'#eeeeee', muted:'#888888', border:'#2e2e2e',
+            quotaBg:'#1e1e1e', quotaBorder:'#555', quotaText:'#eee', quotaNum:'#bbb',
+            calBg:'#1c1c1c', calBorder:'#2e2e2e', calTodayBg:'#2a2a2a', calTodayBorder:'#9e9e9e',
+            quotaMetA:'#757575', quotaMetB:'#9e9e9e',
+            labelBg:'#333', labelText:'#ccc',
         },
         {
-            id:'darkGreen', label:'ダーク緑', dot:'#81c784',
-            primary:'#81c784', primaryDark:'#66bb6a',
-            bg:'#121212', card:'#1e1e1e', inputBg:'#2c2c2c',
-            text:'#e0e0e0', muted:'#aaaaaa', border:'#333333',
-            quotaBg:'#1b2e1e', quotaBorder:'#388E3C', quotaText:'#e0e0e0', quotaNum:'#a5d6a7',
-            calBg:'#1e1e1e', calBorder:'#333333', calTodayBg:'#1b5e20', calTodayBorder:'#81c784',
-            quotaMetA:'#388E3C', quotaMetB:'#66bb6a',
+            id:'forest', label:'フォレスト', dot:'#66bb6a',
+            primary:'#66bb6a', primaryDark:'#43a047',
+            bg:'#0d140e', card:'#152016', inputBg:'#1e2e1f',
+            text:'#d4f0d6', muted:'#7aaa7c', border:'#1e3a20',
+            quotaBg:'#0e2010', quotaBorder:'#2e6030', quotaText:'#d4f0d6', quotaNum:'#a5d6a7',
+            calBg:'#152016', calBorder:'#1e3a20', calTodayBg:'#1a3a1c', calTodayBorder:'#66bb6a',
+            quotaMetA:'#43a047', quotaMetB:'#66bb6a',
+            labelBg:'#1e3a20', labelText:'#a5d6a7',
         },
         {
-            id:'darkBlue', label:'ダーク青', dot:'#64b5f6',
-            primary:'#64b5f6', primaryDark:'#1e88e5',
-            bg:'#0d1117', card:'#161b22', inputBg:'#21262d',
-            text:'#c9d1d9', muted:'#8b949e', border:'#30363d',
-            quotaBg:'#0d1b2a', quotaBorder:'#1e88e5', quotaText:'#c9d1d9', quotaNum:'#64b5f6',
-            calBg:'#161b22', calBorder:'#30363d', calTodayBg:'#0d2137', calTodayBorder:'#64b5f6',
-            quotaMetA:'#1e88e5', quotaMetB:'#64b5f6',
+            id:'midnight', label:'ミッドナイト', dot:'#5c6bc0',
+            primary:'#5c6bc0', primaryDark:'#3949ab',
+            bg:'#0a0c18', card:'#12152a', inputBg:'#1a1e36',
+            text:'#d0d4f8', muted:'#7080c0', border:'#1e2445',
+            quotaBg:'#0e1230', quotaBorder:'#2a3470', quotaText:'#d0d4f8', quotaNum:'#9fa8da',
+            calBg:'#12152a', calBorder:'#1e2445', calTodayBg:'#1a204a', calTodayBorder:'#5c6bc0',
+            quotaMetA:'#3949ab', quotaMetB:'#5c6bc0',
+            labelBg:'#1e2445', labelText:'#9fa8da',
+        },
+        {
+            id:'rose-dark', label:'ローズダーク', dot:'#e91e8c',
+            primary:'#e91e8c', primaryDark:'#c2185b',
+            bg:'#150810', card:'#211020', inputBg:'#2e1530',
+            text:'#f8d0e8', muted:'#c060a0', border:'#3a1a36',
+            quotaBg:'#1e0818', quotaBorder:'#5a1040', quotaText:'#f8d0e8', quotaNum:'#f48fb1',
+            calBg:'#211020', calBorder:'#3a1a36', calTodayBg:'#2e1030', calTodayBorder:'#e91e8c',
+            quotaMetA:'#c2185b', quotaMetB:'#e91e8c',
+            labelBg:'#3a1a36', labelText:'#f48fb1',
+        },
+        {
+            id:'ocean', label:'オーシャン', dot:'#00bcd4',
+            primary:'#00bcd4', primaryDark:'#0097a7',
+            bg:'#060e18', card:'#0c1a2a', inputBg:'#12243a',
+            text:'#c0e8f8', muted:'#508090', border:'#102030',
+            quotaBg:'#071520', quotaBorder:'#104060', quotaText:'#c0e8f8', quotaNum:'#80deea',
+            calBg:'#0c1a2a', calBorder:'#102030', calTodayBg:'#102840', calTodayBorder:'#00bcd4',
+            quotaMetA:'#0097a7', quotaMetB:'#00bcd4',
+            labelBg:'#102030', labelText:'#80deea',
+        },
+        {
+            id:'amber-dark', label:'アンバーダーク', dot:'#ffb300',
+            primary:'#ffb300', primaryDark:'#ff8f00',
+            bg:'#120e00', card:'#1e1800', inputBg:'#2a2200',
+            text:'#fff0c0', muted:'#b09040', border:'#302400',
+            quotaBg:'#1a1400', quotaBorder:'#503800', quotaText:'#fff0c0', quotaNum:'#ffe082',
+            calBg:'#1e1800', calBorder:'#302400', calTodayBg:'#2a2000', calTodayBorder:'#ffb300',
+            quotaMetA:'#ff8f00', quotaMetB:'#ffb300',
+            labelBg:'#302400', labelText:'#ffe082',
         },
     ];
 
@@ -725,15 +829,12 @@
         r.setProperty('--quota-met-a',     t.quotaMetA);
         r.setProperty('--quota-met-b',     t.quotaMetB);
         // ダーク系はbodyクラスも付与（advice-msg等に使うため）
-        const isDarkTheme = ['dark','darkGreen','darkBlue'].includes(themeId);
+        const isDarkTheme = ['obsidian','forest','midnight','rose-dark','ocean','amber-dark'].includes(themeId);
         document.body.classList.toggle('dark-mode', isDarkTheme);
         // アクティブ表示更新
         document.querySelectorAll('.theme-swatch-card').forEach(el => {
             el.classList.toggle('active', el.dataset.tid === themeId);
         });
-        // ダーク/ライトボタンのアイコン切替
-        const btn = document.getElementById('themeToggleBtn');
-        if(btn) btn.textContent = isDarkTheme ? '☀️' : '🌙';
     }
 
     function renderThemeGrid() {
@@ -743,7 +844,13 @@
             const card = document.createElement('div');
             card.className = 'theme-swatch-card' + (appData.themeId === t.id ? ' active' : '');
             card.dataset.tid = t.id;
-            card.innerHTML = `<div class="swatch-dot" style="background:${t.dot};"></div><div class="swatch-label">${t.label}</div>`;
+            card.innerHTML = `
+                <div class="swatch-check">✓</div>
+                <div class="swatch-preview" style="background:${t.bg};">
+                    <div class="swatch-primary-dot" style="background:${t.primary};"></div>
+                    <div class="swatch-card-mini" style="background:${t.card};"></div>
+                </div>
+                <div class="swatch-label-bar" style="background:${t.labelBg||t.primary};color:${t.labelText||'#fff'};">${t.label}</div>`;
             card.onclick = () => { appData.themeId = t.id; applyTheme(t.id); saveData(); renderThemeGrid(); renderChart(); };
             grid.appendChild(card);
         });
@@ -754,15 +861,7 @@
     function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
     document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
 
-    // ダーク切替ボタン（簡易トグル: ライト系⇔ダーク緑）
-    function toggleDark() {
-        const isDark = ['dark','darkGreen','darkBlue'].includes(appData.themeId);
-        appData.themeId = isDark ? 'green' : 'darkGreen';
-        applyTheme(appData.themeId);
-        saveData();
-        renderThemeGrid();
-        renderChart();
-    }
+    // ダーク切替は設定モーダルのテーマ選択で行う
 
     // エクスポート / インポート
     function exportData() {
@@ -793,33 +892,29 @@
         event.target.value = '';
     }
 
-    // ── YouTube 動画リスト ──
-    // 条件: ゲーム実況or雑談 / 長時間 / 過度に叫ばない / ストーリー依存しない
-    const YT_VIDEOS = [
-        // ── ローグライク・穏やか系実況 ──
-        'hFmihPblmxA', // Slay the Spire 長時間実況まとめ
-        'RByKl_Ix_bs', // Vampire Survivors ながら視聴向け
-        'b6c8SWIdXnU', // Dead Cells 作業向き長時間
-        'LZaX1C_APSE', // Into the Breach 静かめ実況
-        'kicLeU-oO_w', // Hades ゆるゆる実況
-        // ── 雑談・トーク系（叫ばない穏やか配信） ──
-        'qc-2jTYkw3E', // ゆるゲー雑談配信アーカイブ
-        'wDchsz8nmbo', // のんびりゲーム雑談
-        // ── lofi / 作業BGM動画（長時間・定番） ──
-        'jfKfPfyJRdk', // lofi hip hop radio – beats to relax/study to
-        '4xDzrJKXOOY', // synthwave radio – beats to chill/game to
-        'rUxyKA_-grg', // Chillhop Music – jazzy beats
-        '5qap5aO4i9A', // lofi hip hop radio – beats to study/relax
-        'DWcJFNfaw9c', // Study Music Alpha Waves 3h
-        'sjkrrmBnpGE', // Lo-fi Beats 1h
-        'N9B8cJBCECk', // Dark Academia Music Playlist
-        '36YnV9STBqc', // Piano Study Music 3h
-        'lTRiuFIWV54', // Coffee Shop Ambience & Jazz
-        'h4wxA3W5Os4', // Rain & Thunder Sounds 8h
+    // ── YouTube 作業用動画 ──
+    // 動画IDは削除リスクが高いため「検索URLランダム選択」方式を採用。
+    // サンプル条件: ホラゲ・バイオ・スレスパ系・穏やか雑談 / 叫ばない / 長時間
+    // sp=EgIYAQ%3D%3D は「1時間以上」フィルタ
+    const YT_SEARCHES = [
+        // ── Slay the Spire ──
+        'https://www.youtube.com/results?search_query=Slay+the+Spire+%E5%AE%9F%E6%B3%81&sp=EgIYAQ%3D%3D',
+        // ── バイオハザード（穏やか・叫ばない系） ──
+        'https://www.youtube.com/results?search_query=%E3%83%90%E3%82%A4%E3%82%AA%E3%83%8F%E3%82%B6%E3%83%BC%E3%83%89+%E5%AE%9F%E6%B3%81+%E3%81%BE%E3%81%A3%E3%81%9F%E3%82%8A&sp=EgIYAQ%3D%3D',
+        // ── バイオ4リメイク ──
+        'https://www.youtube.com/results?search_query=%E3%83%90%E3%82%A4%E3%82%AA4+%E3%83%AA%E3%83%A1%E3%82%A4%E3%82%AF+%E5%AE%9F%E6%B3%81&sp=EgIYAQ%3D%3D',
+        // ── ホラゲ 落ち着いた実況 ──
+        'https://www.youtube.com/results?search_query=%E3%83%9B%E3%83%A9%E3%83%BC%E3%82%B2%E3%83%BC%E3%83%A0+%E5%AE%9F%E6%B3%81+%E8%90%BD%E3%81%A1%E7%9D%80%E3%81%84%E3%81%9F&sp=EgIYAQ%3D%3D',
+        // ── Vampire Survivors / 周回系 ──
+        'https://www.youtube.com/results?search_query=Vampire+Survivors+%E5%AE%9F%E6%B3%81&sp=EgIYAQ%3D%3D',
+        // ── ローグライク まったり ──
+        'https://www.youtube.com/results?search_query=%E3%83%AD%E3%83%BC%E3%82%B0%E3%83%A9%E3%82%A4%E3%82%AF+%E3%81%BE%E3%81%A3%E3%81%9F%E3%82%8A+%E5%AE%9F%E6%B3%81&sp=EgIYAQ%3D%3D',
+        // ── 雑談系ゲーム配信（ながら向き） ──
+        'https://www.youtube.com/results?search_query=%E3%82%B2%E3%83%BC%E3%83%A0+%E9%9B%91%E8%AB%87+%E9%85%8D%E4%BF%A1+%E3%81%AA%E3%81%8C%E3%82%89%E4%BD%9C%E6%A5%AD&sp=EgIYAQ%3D%3D',
     ];
     function openRandomYT() {
-        const id = YT_VIDEOS[Math.floor(Math.random() * YT_VIDEOS.length)];
-        window.open('https://www.youtube.com/watch?v=' + id, '_blank');
+        const url = YT_SEARCHES[Math.floor(Math.random() * YT_SEARCHES.length)];
+        window.open(url, '_blank');
     }
 
     // --- DOM要素 ---
@@ -858,7 +953,7 @@
         if(saved) { try { appData = JSON.parse(saved); } catch(e){} }
         if(!appData.projects) appData.projects = [];
         // 旧データ互換: theme:'dark' → themeId:'darkGreen'
-        if(!appData.themeId) appData.themeId = (appData.theme === 'dark') ? 'darkGreen' : 'green';
+        if(!appData.themeId || !THEMES.find(t=>t.id===appData.themeId)) appData.themeId = (appData.theme === 'dark') ? 'obsidian' : 'sage';
         applyTheme(appData.themeId);
 
         const dt = new Date(); const days = ['日', '月', '火', '水', '木', '金', '土'];
