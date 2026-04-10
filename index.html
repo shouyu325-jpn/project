@@ -555,6 +555,59 @@
     }
     #pTitle:hover { border-bottom-color: var(--primary); }
 
+
+    /* ══ 統計ページ ══ */
+    .stats-summary-grid {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: 10px; margin-bottom: 24px;
+    }
+    @media (min-width: 600px) { .stats-summary-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    .stats-kpi {
+        background: var(--input-bg); border: 1px solid var(--border);
+        border-radius: 12px; padding: 14px 12px; text-align: center;
+    }
+    .stats-kpi-icon { font-size: 1.5em; margin-bottom: 4px; }
+    .stats-kpi-num {
+        font-size: 1.6em; font-weight: 900; font-family: monospace;
+        color: var(--primary); line-height: 1.1; margin-bottom: 2px;
+    }
+    .stats-kpi-label { font-size: 0.72em; color: var(--muted); font-weight: bold; }
+
+    .stats-section {
+        background: var(--input-bg); border: 1px solid var(--border);
+        border-radius: 12px; padding: 16px; margin-bottom: 16px;
+    }
+    .stats-section-title { font-size: 0.9em; margin: 0 0 14px; color: var(--text); }
+    .stats-chart-wrap { position: relative; height: 220px; }
+
+    /* 作業時間ランキング */
+    .time-rank-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 0; border-bottom: 1px solid var(--border);
+        font-size: 0.85em;
+    }
+    .time-rank-row:last-child { border-bottom: none; }
+    .time-rank-num { font-weight: 900; color: var(--muted); width: 20px; text-align: center; flex-shrink: 0; }
+    .time-rank-title { flex: 1; font-weight: bold; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .time-rank-bar-wrap { width: 100px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+    .time-rank-bar-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+    .time-rank-val { font-size: 0.82em; color: var(--muted); white-space: nowrap; flex-shrink: 0; min-width: 60px; text-align: right; }
+
+    /* ══ アーカイブページ ══ */
+    .archive-card {
+        background: var(--input-bg); border: 1px solid var(--border);
+        border-radius: 10px; padding: 14px 16px; margin-bottom: 10px;
+        transition: 0.18s; cursor: pointer;
+    }
+    .archive-card:hover { border-color: var(--primary); transform: translateY(-1px); }
+    .archive-card-title { font-size: 1em; font-weight: bold; color: var(--text); margin-bottom: 5px; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .archive-badge { font-size: 0.72em; background: var(--primary); color: #fff; padding: 2px 7px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+    .archive-meta { font-size: 0.8em; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+    .archive-meta-item { display: flex; align-items: center; gap: 3px; }
+    .archive-unarchive { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 5px; padding: 3px 8px; font-size: 0.74em; cursor: pointer; transition: 0.15s; }
+    .archive-unarchive:hover { border-color: var(--primary); color: var(--primary); }
+
 </style>
 </head>
 <body>
@@ -563,6 +616,8 @@
     <div class="header">
         <h1 id="appTitle">進捗管理ホーム</h1>
         <div style="display:flex;gap:2px;align-items:center;">
+            <button class="btn-icon" onclick="openStatsView()" title="統計・分析" style="font-size:1.3em;">📊</button>
+            <button class="btn-icon" onclick="openArchiveView()" title="アーカイブ一覧" style="font-size:1.3em;">📦</button>
             <button class="btn-icon" onclick="openThemeModal()" title="テーマカラーを変更" style="font-size:1.3em;">🎨</button>
             <button class="btn-icon" onclick="openBackupModal()" title="データのバックアップ" style="font-size:1.3em;">🗂️</button>
         </div>
@@ -597,11 +652,67 @@
                     </div>
                     <div id="projectList"></div>
                 </div>
-                <div style="margin-top: 20px;">
-                    <h3 style="font-size: 0.9em; color: var(--muted);">アーカイブ</h3>
-                    <div id="archiveList"></div>
-                </div>
+                <!-- アーカイブは📦ボタンの専用ページに移動 -->
             </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════
+         📊 統計ビュー
+    ══════════════════════════════════════ -->
+    <div id="view-stats" class="view">
+        <button class="btn" onclick="goToList()" style="margin-bottom:18px;">◀ ホームに戻る</button>
+        <h2 style="margin-bottom:18px;">📊 統計・分析</h2>
+
+        <!-- サマリーカード群 -->
+        <div class="stats-summary-grid" id="statsSummaryGrid"></div>
+
+        <!-- 月別作業量グラフ -->
+        <div class="stats-section">
+            <h3 class="stats-section-title">📅 月別 作業量推移</h3>
+            <div class="stats-chart-wrap">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 月別案件数グラフ -->
+        <div class="stats-section">
+            <h3 class="stats-section-title">📁 月別 完了案件数</h3>
+            <div class="stats-chart-wrap" style="height:180px;">
+                <canvas id="monthlyProjectChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 作業時間ランキング -->
+        <div class="stats-section">
+            <h3 class="stats-section-title">⏱ 案件別 作業時間ランキング</h3>
+            <div id="timeRankingList"></div>
+        </div>
+
+        <!-- 曜日別作業パターン -->
+        <div class="stats-section">
+            <h3 class="stats-section-title">📆 曜日別 作業量パターン</h3>
+            <div class="stats-chart-wrap" style="height:180px;">
+                <canvas id="weekdayChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         📦 アーカイブビュー
+    ══════════════════════════════════════ -->
+    <div id="view-archive" class="view">
+        <button class="btn" onclick="goToList()" style="margin-bottom:18px;">◀ ホームに戻る</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+            <h2 style="margin:0;">📦 アーカイブ</h2>
+            <span id="archiveCount" style="font-size:0.85em;color:var(--muted);"></span>
+        </div>
+        <div id="archiveViewList"></div>
+        <div id="archiveEmpty" style="display:none;text-align:center;padding:40px 20px;color:var(--muted);">
+            <div style="font-size:2.5em;margin-bottom:12px;">📭</div>
+            <div style="font-weight:bold;margin-bottom:6px;">アーカイブはまだありません</div>
+            <div style="font-size:0.85em;">完了した案件をアーカイブすると<br>ここに保管されます</div>
         </div>
     </div>
 
@@ -1038,8 +1149,10 @@
     }
 
     // --- DOM要素 ---
-    const vList = document.getElementById('view-list');
-    const vDetail = document.getElementById('view-detail');
+    const vList   = document.getElementById('view-list');
+    const vDetail  = document.getElementById('view-detail');
+    const vStats   = document.getElementById('view-stats');
+    const vArchive = document.getElementById('view-archive');
     const domHero = document.getElementById('heroProjectArea');
     const domList = document.getElementById('projectList');
     const domArchList = document.getElementById('archiveList');
@@ -1087,9 +1200,10 @@
 
     function goToList() {
         appData.currentId = null; saveData();
-        vDetail.classList.remove('active'); vList.classList.add('active');
+        [vDetail, vStats, vArchive].forEach(v => v && v.classList.remove('active'));
+        vList.classList.add('active');
         renderList();
-        renderCalendar(); // カレンダー描画
+        renderCalendar();
     }
 
     // =========================================
@@ -1314,7 +1428,7 @@
     }
 
     function renderList() {
-        domHero.innerHTML = ''; domList.innerHTML = ''; domArchList.innerHTML = '';
+        domHero.innerHTML = ''; domList.innerHTML = ''; if(domArchList) domArchList.innerHTML = '';
         domOtherDetails.style.display = 'none'; domOtherDetails.open = undefined;
 
         // ── 締切警告バナー描画 ──
@@ -1364,7 +1478,7 @@
         let highestScore = -Infinity; let topProject = null; let others = [];
 
         appData.projects.forEach(p => {
-            if(p.isArchived) { renderCard(p, domArchList); return; }
+            if(p.isArchived) { return; } // アーカイブは専用ページ
             const score = calcPriorityScore(p);
             if(score > highestScore && p.total > p.completed) {
                 if(topProject) others.push(topProject);
@@ -1698,6 +1812,239 @@
         }
         saveData();
         refreshDetail();
+    }
+
+
+    // ══════════════════════════════════════════
+    // 📊 統計ビュー
+    // ══════════════════════════════════════════
+    let monthlyChartInst = null;
+    let monthlyProjChartInst = null;
+    let weekdayChartInst = null;
+
+    function openStatsView() {
+        [vDetail, vArchive].forEach(v => v && v.classList.remove('active'));
+        vList.classList.remove('active');
+        vStats.classList.add('active');
+        renderStats();
+    }
+
+    function renderStats() {
+        const all = appData.projects;
+        const done = all.filter(p => p.isArchived || p.completed >= p.total);
+        const active = all.filter(p => !p.isArchived && p.completed < p.total);
+
+        // ── KPI 計算 ──
+        // 1. 1pあたり平均作業時間（完了案件のみ）
+        let totalMinutes = 0, totalPages = 0;
+        done.forEach(p => {
+            (p.timeLogs || []).forEach(l => totalMinutes += l.totalMinutes);
+            totalPages += p.completed || p.total;
+        });
+        const avgMinPerPage = totalPages > 0 ? (totalMinutes / totalPages) : 0;
+
+        // 2. 完了案件数
+        const doneCount = done.length;
+
+        // 3. 総稼働日数（ログのある日を集計）
+        const workDays = new Set();
+        all.forEach(p => (p.logs || []).forEach(l => { if(l.done > 0) workDays.add(l.date); }));
+
+        // 4. 連続稼働日数（今日から遡って連続している日数）
+        let streak = 0;
+        const checkDt = getToday();
+        for(let i = 0; i < 365; i++) {
+            const ds = formatDate(checkDt);
+            if(workDays.has(ds)) { streak++; checkDt.setDate(checkDt.getDate()-1); }
+            else if(i === 0) { checkDt.setDate(checkDt.getDate()-1); } // 今日未記録はスキップ
+            else break;
+        }
+
+        // 5. 総作業時間
+        let totalAllMin = 0;
+        all.forEach(p => (p.timeLogs||[]).forEach(l => totalAllMin += l.totalMinutes));
+
+        // 6. 直近30日の稼働日数
+        const today30 = getToday();
+        let active30Days = 0;
+        for(let i = 0; i < 30; i++) {
+            const ds = formatDate(new Date(today30.getTime() - i * 86400000));
+            if(workDays.has(ds)) active30Days++;
+        }
+
+        // ── KPIカード描画 ──
+        const kpis = [
+            { icon:'⏱', num: avgMinPerPage > 0 ? formatMin(avgMinPerPage) : '-', label:'1pあたり平均時間' },
+            { icon:'✅', num: doneCount,           label:'完了案件数' },
+            { icon:'🔥', num: streak + '日',        label:'連続稼働日数' },
+            { icon:'📅', num: active30Days + '日', label:'直近30日稼働' },
+            { icon:'📝', num: active.length,        label:'進行中案件' },
+            { icon:'⏰', num: formatMin(totalAllMin), label:'総作業時間' },
+            { icon:'📄', num: totalPages,            label:'総完了ページ数' },
+            { icon:'📁', num: all.length,            label:'登録案件数' },
+        ];
+        const grid = document.getElementById('statsSummaryGrid');
+        grid.innerHTML = '';
+        kpis.forEach(k => {
+            const el = document.createElement('div');
+            el.className = 'stats-kpi';
+            el.innerHTML = `<div class="stats-kpi-icon">${k.icon}</div><div class="stats-kpi-num">${k.num}</div><div class="stats-kpi-label">${k.label}</div>`;
+            grid.appendChild(el);
+        });
+
+        // ── 月別作業量グラフ（直近12ヶ月） ──
+        const months = [];
+        const monthWork = [];
+        const refDate = new Date();
+        for(let m = 11; m >= 0; m--) {
+            const d2 = new Date(refDate.getFullYear(), refDate.getMonth() - m, 1);
+            const yy = d2.getFullYear(), mm2 = d2.getMonth()+1;
+            months.push(`${yy}/${mm2}`);
+            let pages = 0;
+            all.forEach(p => {
+                (p.logs||[]).forEach(l => {
+                    if(l.date.startsWith(`${yy}-${mm2.toString().padStart(2,'0')}`)) pages += l.done;
+                });
+            });
+            monthWork.push(pages);
+        }
+        const isDark = document.body.classList.contains('dark-mode');
+        const textColor = isDark ? '#e0e0e0' : '#333';
+        const gridColor = isDark ? '#333' : '#eee';
+        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+
+        if(monthlyChartInst) { monthlyChartInst.destroy(); monthlyChartInst = null; }
+        const mc = document.getElementById('monthlyChart');
+        if(mc) {
+            monthlyChartInst = new Chart(mc.getContext('2d'), {
+                type:'bar',
+                data:{ labels:months, datasets:[{ label:'作業量(p)', data:monthWork, backgroundColor:primary, borderRadius:4 }] },
+                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:textColor},grid:{color:gridColor}},y:{ticks:{color:textColor,stepSize:1},grid:{color:gridColor}}} }
+            });
+        }
+
+        // ── 月別完了案件数グラフ ──
+        const monthProj = new Array(12).fill(0);
+        done.forEach(p => {
+            const dl = p.deadline || '';
+            if(!dl) return;
+            const [y2,m2] = dl.split('-').map(Number);
+            const monthIdx = (y2 - refDate.getFullYear()) * 12 + (m2 - 1 - (refDate.getMonth() - 11));
+            if(monthIdx >= 0 && monthIdx < 12) monthProj[monthIdx]++;
+        });
+        if(monthlyProjChartInst) { monthlyProjChartInst.destroy(); monthlyProjChartInst = null; }
+        const mpc = document.getElementById('monthlyProjectChart');
+        if(mpc) {
+            monthlyProjChartInst = new Chart(mpc.getContext('2d'), {
+                type:'bar',
+                data:{ labels:months, datasets:[{ label:'完了数', data:monthProj, backgroundColor:primary+'99', borderRadius:4 }] },
+                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:textColor},grid:{color:gridColor}},y:{ticks:{color:textColor,stepSize:1},grid:{color:gridColor}}} }
+            });
+        }
+
+        // ── 作業時間ランキング ──
+        const ranked = all.map(p => {
+            let min = 0; (p.timeLogs||[]).forEach(l => min += l.totalMinutes);
+            return { title: p.title||'無題', min, pages: p.completed||0 };
+        }).filter(x => x.min > 0).sort((a,b) => b.min - a.min).slice(0,8);
+        const maxMin = ranked[0]?.min || 1;
+        const rankList = document.getElementById('timeRankingList');
+        if(rankList) {
+            if(ranked.length === 0) {
+                rankList.innerHTML = '<div style="color:var(--muted);text-align:center;padding:12px;font-size:0.85em;">作業時間の記録がまだありません</div>';
+            } else {
+                rankList.innerHTML = ranked.map((r,i) => `
+                    <div class="time-rank-row">
+                        <span class="time-rank-num">${i+1}</span>
+                        <span class="time-rank-title">${r.title}</span>
+                        <div class="time-rank-bar-wrap"><div class="time-rank-bar-fill" style="width:${(r.min/maxMin*100).toFixed(0)}%"></div></div>
+                        <span class="time-rank-val">${formatMin(r.min)}</span>
+                    </div>`).join('');
+            }
+        }
+
+        // ── 曜日別作業量 ──
+        const dayNames = ['日','月','火','水','木','金','土'];
+        const dayWork = new Array(7).fill(0);
+        all.forEach(p => {
+            (p.logs||[]).forEach(l => {
+                if(l.done <= 0) return;
+                const d3 = new Date(l.date);
+                dayWork[d3.getDay()] += l.done;
+            });
+        });
+        if(weekdayChartInst) { weekdayChartInst.destroy(); weekdayChartInst = null; }
+        const wc = document.getElementById('weekdayChart');
+        if(wc) {
+            const bgColors = dayNames.map((_,i) => i===0?'rgba(229,57,53,0.7)':i===6?'rgba(30,136,229,0.7)':primary+'bb');
+            weekdayChartInst = new Chart(wc.getContext('2d'), {
+                type:'bar',
+                data:{ labels:dayNames, datasets:[{ label:'作業量', data:dayWork, backgroundColor:bgColors, borderRadius:4 }] },
+                options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{ticks:{color:textColor},grid:{color:gridColor}},y:{ticks:{color:textColor,stepSize:1},grid:{color:gridColor}}} }
+            });
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // 📦 アーカイブビュー
+    // ══════════════════════════════════════════
+    function openArchiveView() {
+        [vDetail, vStats].forEach(v => v && v.classList.remove('active'));
+        vList.classList.remove('active');
+        vArchive.classList.add('active');
+        renderArchiveView();
+    }
+
+    function renderArchiveView() {
+        const archived = appData.projects.filter(p => p.isArchived);
+        const countEl  = document.getElementById('archiveCount');
+        const listEl   = document.getElementById('archiveViewList');
+        const emptyEl  = document.getElementById('archiveEmpty');
+        if(countEl) countEl.textContent = `${archived.length}件`;
+        if(!listEl) return;
+        listEl.innerHTML = '';
+
+        if(archived.length === 0) {
+            if(emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        if(emptyEl) emptyEl.style.display = 'none';
+
+        // 締切日の新しい順
+        const sorted = [...archived].sort((a,b) => new Date(b.deadline) - new Date(a.deadline));
+        sorted.forEach(p => {
+            const pct = p.total > 0 ? Math.min(100, (p.completed/p.total)*100) : 0;
+            let totalMin = 0; (p.timeLogs||[]).forEach(l => totalMin += l.totalMinutes);
+            const avgMin = p.completed > 0 ? (totalMin / p.completed) : 0;
+            const duration = p.startDate && p.deadline
+                ? Math.max(0, Math.ceil((new Date(p.deadline)-new Date(p.startDate))/86400000)) + '日間'
+                : '-';
+
+            const card = document.createElement('div');
+            card.className = 'archive-card';
+            card.innerHTML = `
+                <div class="archive-card-title">
+                    <span>${p.title||'無題'}</span>
+                    <span class="archive-badge">${pct.toFixed(0)}% 完了</span>
+                </div>
+                <div class="archive-meta">
+                    <span class="archive-meta-item">📅 ${p.startDate||'?'} 〜 ${p.deadline||'?'}</span>
+                    <span class="archive-meta-item">📄 ${p.completed}/${p.total}p</span>
+                    <span class="archive-meta-item">⏱ 計 ${formatMin(totalMin)}</span>
+                    ${avgMin > 0 ? `<span class="archive-meta-item">📌 1p≒${formatMin(avgMin)}</span>` : ''}
+                    <span class="archive-meta-item">🗓 ${duration}</span>
+                </div>
+                <div style="margin-top:8px;">
+                    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%"></div></div>
+                </div>`;
+
+            // クリックで案件詳細へ
+            card.onclick = (e) => {
+                if(e.target.classList.contains('archive-unarchive')) return;
+                openProject(p.id);
+            };
+            listEl.appendChild(card);
+        });
     }
 
     window.onload = init;
