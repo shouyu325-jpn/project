@@ -465,6 +465,40 @@
     }
     .log-edit-delete:hover { background: var(--danger); color: #fff; }
 
+
+    /* ── ヒーロー欄 今日やる量バッジ ── */
+    .hero-quota-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0,0,0,0.07);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        padding: 8px 16px;
+        margin: 8px auto 0;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: var(--text);
+    }
+    .dark-mode .hero-quota-badge {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.12);
+        color: var(--text);
+    }
+    .hero-quota-num {
+        font-size: 1.8em;
+        font-weight: 900;
+        font-family: monospace;
+        color: var(--quota-num-color);
+        line-height: 1;
+    }
+    .hero-quota-badge.hero-quota-done {
+        background: linear-gradient(135deg, var(--quota-met-a), var(--quota-met-b));
+        border-color: transparent;
+        color: #fff;
+    }
+    .hero-quota-badge.hero-quota-done .hero-quota-num { color: #fff; }
+
 </style>
 </head>
 <body>
@@ -472,7 +506,10 @@
 <div class="container">
     <div class="header">
         <h1 id="appTitle">進捗管理ホーム</h1>
-        <button class="btn-icon" onclick="openSettingsModal()" title="設定・テーマ">⚙️</button>
+        <div style="display:flex;gap:2px;align-items:center;">
+            <button class="btn-icon" onclick="openThemeModal()" title="テーマカラーを変更" style="font-size:1.3em;">🎨</button>
+            <button class="btn-icon" onclick="openBackupModal()" title="データのバックアップ" style="font-size:1.3em;">🗂️</button>
+        </div>
     </div>
 
     <div id="view-list" class="view active">
@@ -647,28 +684,40 @@
     </div>
 </div>
 
-<!-- ══ 設定モーダル ══ -->
-<div id="settingsModal" class="modal-overlay">
+<!-- ══ テーマモーダル ══ -->
+<div id="themeModal" class="modal-overlay">
   <div class="modal-box" style="max-width:520px;">
-    <div class="modal-title">⚙️ 設定</div>
+    <div class="modal-title">🎨 テーマカラー</div>
+    <div style="font-size:0.82em;color:var(--muted);margin-bottom:12px;">背景・カード・カラーが一括で変わります。次回起動時も維持されます</div>
+    <div class="theme-grid" id="themeGrid"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeThemeModal()">閉じる</button>
+    </div>
+  </div>
+</div>
 
-    <div class="theme-picker-section">
-      <div style="font-size:0.9em;font-weight:bold;margin-bottom:2px;">🎨 テーマ</div>
-      <div style="font-size:0.8em;color:var(--muted);">背景・カード・カラーが一括で変わります。次回も維持されます</div>
-      <div class="theme-grid" id="themeGrid"></div>
+<!-- ══ バックアップモーダル ══ -->
+<div id="backupModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-title">🗂️ データのバックアップ</div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:0.9em;font-weight:bold;margin-bottom:8px;color:var(--text);">📤 エクスポート（書き出し）</div>
+      <p style="font-size:0.82em;color:var(--muted);margin:0 0 10px;">全データをJSONファイルとして保存します。定期的なバックアップにどうぞ。</p>
+      <button class="btn btn-primary" style="width:100%;" onclick="exportData()">📤 JSONファイルをダウンロード</button>
     </div>
 
-    <div class="backup-section">
-      <div style="font-size:0.9em;font-weight:bold;">💾 データのバックアップ</div>
-      <div class="backup-btns">
-        <button class="btn btn-primary" onclick="exportData()">📤 エクスポート</button>
-        <label class="btn" style="cursor:pointer;">📥 インポート<input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)"></label>
-      </div>
-      <div style="font-size:0.75em;color:var(--muted);margin-top:6px;">インポートは現在データを上書きします</div>
+    <div style="border-top:1px solid var(--border);padding-top:18px;">
+      <div style="font-size:0.9em;font-weight:bold;margin-bottom:8px;color:var(--text);">📥 インポート（読み込み）</div>
+      <p style="font-size:0.82em;color:var(--muted);margin:0 0 10px;">バックアップファイルを選択して復元します。<span style="color:var(--danger);font-weight:bold;">現在のデータは上書きされます。</span></p>
+      <label class="btn" style="cursor:pointer;width:100%;display:block;text-align:center;box-sizing:border-box;">
+        📥 JSONファイルを選択してインポート
+        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+      </label>
     </div>
 
     <div class="modal-actions">
-      <button class="btn btn-primary" onclick="closeSettingsModal()">閉じる</button>
+      <button class="btn btn-primary" onclick="closeBackupModal()">閉じる</button>
     </div>
   </div>
 </div>
@@ -856,9 +905,19 @@
         });
     }
 
-    // 設定モーダル
-    function openSettingsModal() { renderThemeGrid(); document.getElementById('settingsModal').classList.add('open'); }
-    function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+    // テーマモーダル
+    function openThemeModal()  { renderThemeGrid(); document.getElementById('themeModal').classList.add('open'); }
+    function closeThemeModal() { document.getElementById('themeModal').classList.remove('open'); }
+
+    // バックアップモーダル
+    function openBackupModal()  { document.getElementById('backupModal').classList.add('open'); }
+    function closeBackupModal() { document.getElementById('backupModal').classList.remove('open'); }
+
+    // 旧関数の互換エイリアス（import/exportから参照されていた場合の保険）
+    function openSettingsModal()  { openThemeModal(); }
+    function closeSettingsModal() { closeThemeModal(); }
+
+    // モーダル外クリックで閉じる
     document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); }));
 
     // ダーク切替は設定モーダルのテーマ選択で行う
@@ -1217,11 +1276,35 @@
 
         if(topProject) {
             const pct = Math.min(100, (topProject.completed / topProject.total) * 100);
+
+            // 今日のノルマを計算
+            const todayStr = getTodayStr();
+            const todayDt  = getToday();
+            const deadDt   = new Date(topProject.deadline);
+            const diffDays = Math.ceil((deadDt - todayDt) / 86400000);
+            const remain   = topProject.total - topProject.completed;
+            const logToday = (topProject.logs || []).find(l => l.date === todayStr);
+            const todayDone = logToday ? logToday.done : 0;
+            const targetQuota = diffDays > 0
+                ? Math.ceil((remain + todayDone) / diffDays)
+                : remain + todayDone;
+
+            // ノルマ達成状況のバッジを組み立て
+            let quotaBadge = '';
+            if (remain === 0) {
+                quotaBadge = `<div class="hero-quota-badge hero-quota-done">🎉 完了済み</div>`;
+            } else if (todayDone >= targetQuota && targetQuota > 0) {
+                quotaBadge = `<div class="hero-quota-badge hero-quota-done">✨ 今日の分 達成！ <span>${todayDone}/${targetQuota}</span></div>`;
+            } else {
+                quotaBadge = `<div class="hero-quota-badge">📋 今日やる量 <span class="hero-quota-num">${targetQuota}</span> <small style="font-size:0.75em;opacity:0.8;">（済: ${todayDone}）</small></div>`;
+            }
+
             domHero.innerHTML = `
                 <div class="hero-project">
                     <div class="hero-label">🔥 今日やるのはコレ！</div>
                     <div class="hero-title">${topProject.title || '無題'}</div>
-                    <div class="hero-meta"><span>期限: ${topProject.deadline}</span><span>残量: ${topProject.total - topProject.completed}</span></div>
+                    ${quotaBadge}
+                    <div class="hero-meta" style="margin-top:10px;"><span>期限: ${topProject.deadline}</span><span>残量: ${remain}</span></div>
                     <div class="mini-bar-bg" style="margin-bottom:15px;"><div class="mini-bar-fill" style="width: ${pct}%"></div></div>
                     <button class="btn-hero" onclick="openProject('${topProject.id}')">▶ この作業を始める</button>
                 </div>
