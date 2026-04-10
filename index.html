@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4CAF50">
 <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234CAF50'/%3E%3Crect x='5' y='8' width='14' height='3' rx='1.5' fill='white' opacity='.9'/%3E%3Crect x='5' y='14' width='20' height='3' rx='1.5' fill='white' opacity='.7'/%3E%3Crect x='5' y='20' width='10' height='3' rx='1.5' fill='white' opacity='.5'/%3E%3Cpath d='M20 19 L23 23 L28 16' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -662,7 +663,7 @@
          📊 統計ビュー
     ══════════════════════════════════════ -->
     <div id="view-stats" class="view">
-        <button class="btn" onclick="goToList()" style="margin-bottom:18px;">◀ ホームに戻る</button>
+        <button class="btn back-btn-dynamic" onclick="goBack()" style="margin-bottom:18px;">◀ ホームに戻る</button>
         <h2 style="margin-bottom:18px;">📊 統計・分析</h2>
 
         <!-- サマリーカード群 -->
@@ -703,7 +704,7 @@
          📦 アーカイブビュー
     ══════════════════════════════════════ -->
     <div id="view-archive" class="view">
-        <button class="btn" onclick="goToList()" style="margin-bottom:18px;">◀ ホームに戻る</button>
+        <button class="btn back-btn-dynamic" onclick="goBack()" style="margin-bottom:18px;">◀ ホームに戻る</button>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
             <h2 style="margin:0;">📦 アーカイブ</h2>
             <span id="archiveCount" style="font-size:0.85em;color:var(--muted);"></span>
@@ -899,6 +900,7 @@
     let appData = { theme: 'light', themeId: 'green', projects: [], currentId: null };
     let progressChartInstance = null;
     let calCurrentDate = new Date();
+    let prevView = 'list'; // 直前のビュー: 'list' | 'detail'
 
     // ══════════════════════════════════════════
     // 🎨 テーマ定義（全CSS変数をまとめて管理）
@@ -1204,6 +1206,28 @@
         vList.classList.add('active');
         renderList();
         renderCalendar();
+    }
+
+    // 「戻る」：直前のビューに応じてプロジェクトまたはホームへ
+    function goBack() {
+        [vStats, vArchive].forEach(v => v && v.classList.remove('active'));
+        if(prevView === 'detail' && appData.currentId) {
+            vList.classList.remove('active');
+            vDetail.classList.add('active');
+            refreshDetail();
+        } else {
+            goToList();
+        }
+    }
+
+    // 戻るボタンのラベルを動的に更新
+    function updateBackButtons() {
+        const label = (prevView === 'detail' && appData.currentId)
+            ? '◀ 案件に戻る'
+            : '◀ ホームに戻る';
+        document.querySelectorAll('.back-btn-dynamic').forEach(btn => {
+            btn.textContent = label;
+        });
     }
 
     // =========================================
@@ -1823,10 +1847,12 @@
     let weekdayChartInst = null;
 
     function openStatsView() {
-        [vDetail, vArchive].forEach(v => v && v.classList.remove('active'));
-        vList.classList.remove('active');
+        // 遷移元を記憶（プロジェクトが開いていれば 'detail'、そうでなければ 'list'）
+        prevView = (appData.currentId && vDetail.classList.contains('active')) ? 'detail' : 'list';
+        [vDetail, vArchive, vList].forEach(v => v && v.classList.remove('active'));
         vStats.classList.add('active');
         renderStats();
+        updateBackButtons();
     }
 
     function renderStats() {
@@ -1989,10 +2015,11 @@
     // 📦 アーカイブビュー
     // ══════════════════════════════════════════
     function openArchiveView() {
-        [vDetail, vStats].forEach(v => v && v.classList.remove('active'));
-        vList.classList.remove('active');
+        prevView = (appData.currentId && vDetail.classList.contains('active')) ? 'detail' : 'list';
+        [vDetail, vStats, vList].forEach(v => v && v.classList.remove('active'));
         vArchive.classList.add('active');
         renderArchiveView();
+        updateBackButtons();
     }
 
     function renderArchiveView() {
