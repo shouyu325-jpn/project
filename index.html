@@ -609,6 +609,49 @@
     .archive-unarchive { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 5px; padding: 3px 8px; font-size: 0.74em; cursor: pointer; transition: 0.15s; }
     .archive-unarchive:hover { border-color: var(--primary); color: var(--primary); }
 
+
+    /* ══ 作業中オーバーレイ ══
+       view-detail に .working クラスが付くと
+       停止ボタン以外が暗くなる                 */
+
+    /* オーバーレイ本体（view-detail の直下疑似要素） */
+    #view-detail.working::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.52);
+        z-index: 200;
+        pointer-events: none;          /* クリックは下を通す */
+        animation: overlay-in 0.35s ease forwards;
+    }
+    @keyframes overlay-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    /* 停止ボタン（スマホ）を最前面へ */
+    #view-detail.working #timerBox {
+        position: relative;
+        z-index: 300;
+    }
+    /* 停止ボタン（PC）を最前面へ */
+    #view-detail.working #pcActionPanel {
+        position: relative;
+        z-index: 300;
+    }
+
+    /* 停止ボタン自体をさらに強調 */
+    #view-detail.working .btn-timer.stop,
+    #view-detail.working .btn-pc-timer.stop {
+        box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.35),
+                    0 8px 28px rgba(229, 57, 53, 0.45);
+        animation: pulse 2s infinite, stop-glow 1.8s ease-in-out infinite;
+    }
+    @keyframes stop-glow {
+        0%, 100% { box-shadow: 0 0 0 4px rgba(229,57,53,0.3), 0 8px 28px rgba(229,57,53,0.4); }
+        50%       { box-shadow: 0 0 0 8px rgba(229,57,53,0.15), 0 12px 36px rgba(229,57,53,0.5); }
+    }
+
 </style>
 </head>
 <body>
@@ -1640,6 +1683,8 @@
             // PC用
             if(pcBtn)  { pcBtn.textContent = "■ 作業終了"; pcBtn.classList.add('stop'); }
             if(pcLine) { pcLine.textContent = `⏱ ${hh}:${mm}:${ss}`; }
+            // 作業中オーバーレイ ON
+            vDetail.classList.add('working');
         } else {
             // スマホ用
             d.btnTimer.textContent = "▶ 作業開始"; d.btnTimer.classList.remove('stop');
@@ -1647,6 +1692,8 @@
             // PC用
             if(pcBtn)  { pcBtn.textContent = "▶ 作業開始"; pcBtn.classList.remove('stop'); }
             if(pcLine) { pcLine.textContent = ""; }
+            // 作業中オーバーレイ OFF
+            vDetail.classList.remove('working');
         }
     }
 
