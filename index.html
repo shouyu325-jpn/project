@@ -653,26 +653,85 @@
     }
 
 
-    /* ── 完了・アーカイブボタン ── */
+    /* ══ ① ストリークバッジ ══ */
+    .streak-bar {
+        display: flex; align-items: center; gap: 10px;
+        background: linear-gradient(135deg, var(--quota-met-a), var(--quota-met-b));
+        border-radius: 10px; padding: 10px 16px; margin-bottom: 14px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.12); animation: alert-pop 0.4s ease;
+    }
+    .streak-fire { font-size: 1.5em; }
+    .streak-num  { font-size: 1.6em; font-weight: 900; font-family: monospace; color: #fff; line-height: 1; }
+    .streak-text { font-size: 0.82em; color: rgba(255,255,255,0.9); font-weight: bold; line-height: 1.3; }
+
+    /* ══ ③ 週間サマリーモーダル ══ */
+    .weekly-modal-box {
+        background: var(--card); border-radius: 16px; padding: 28px 24px;
+        width: 100%; max-width: 400px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.28);
+        animation: modal-in 0.22s ease;
+    }
+    .weekly-kpi-row { display: flex; gap: 10px; margin: 14px 0; }
+    .weekly-kpi {
+        flex: 1; background: var(--input-bg); border: 1px solid var(--border);
+        border-radius: 10px; padding: 12px 8px; text-align: center;
+    }
+    .weekly-kpi-num { font-size: 1.4em; font-weight: 900; font-family: monospace; color: var(--primary); }
+    .weekly-kpi-label { font-size: 0.7em; color: var(--muted); font-weight: bold; margin-top: 2px; }
+
+    /* ══ ⑤ 目標時間バー ══ */
+    .goal-time-wrap {
+        background: var(--input-bg); border: 1px solid var(--border);
+        border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    }
+    .goal-time-head {
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 0.82em; font-weight: bold; color: var(--muted); margin-bottom: 6px;
+    }
+    .goal-time-pct { font-size: 1em; font-weight: 900; font-family: monospace; color: var(--primary); }
+    .goal-time-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+    .goal-time-bar-fill { height: 100%; background: var(--primary); border-radius: 5px; transition: width 0.5s; }
+    .goal-time-set { background: none; border: 1px solid var(--border); border-radius: 5px;
+        font-size: 0.72em; color: var(--muted); padding: 3px 8px; cursor: pointer; transition: 0.15s; }
+    .goal-time-set:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ══ ④ プロジェクトカード追記 ══ */
+    .card-hint { font-size: 0.75em; margin-top: 5px; padding: 4px 8px; border-radius: 5px; }
+    .card-hint-ok   { background: rgba(76,175,80,0.1);  color: #388E3C; }
+    .card-hint-warn { background: rgba(251,140,0,0.1);  color: #e65100; }
+    .card-hint-over { background: rgba(229,57,53,0.1);  color: var(--danger); }
+
+
+    /* ── 制作完了ボタン ── */
     .btn-complete {
         background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: #fff;
-        font-weight: 900;
-        letter-spacing: 0.02em;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-        transition: 0.2s;
+        color: #fff; font-weight: 900; letter-spacing: 0.02em;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15); transition: 0.2s;
     }
     .btn-complete:hover { filter: brightness(1.08); transform: translateY(-1px); }
-    .btn-unarchive {
-        background: var(--border); color: var(--muted);
-    }
+    .btn-unarchive { background: var(--border); color: var(--muted); }
 
-    /* ── 紙吹雪パーティクル ── */
+    /* ── 紙吹雪 ── */
     .confetti-canvas {
         position: fixed; inset: 0;
-        pointer-events: none;
-        z-index: 9999;
+        pointer-events: none; z-index: 9999;
     }
+
+    /* ── タイムライン総時間サマリー ── */
+    .total-time-summary {
+        display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+        background: var(--quota-bg); border: 1px solid var(--quota-border);
+        border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;
+    }
+    .total-time-label {
+        font-size: 0.8em; font-weight: bold; color: var(--muted);
+        white-space: nowrap;
+    }
+    .total-time-main {
+        font-size: 1.05em; font-weight: 900; font-family: monospace;
+        color: var(--quota-num-color);
+    }
+    .total-time-sub { font-size: 0.82em; color: var(--muted); }
 
 </style>
 </head>
@@ -695,6 +754,7 @@
             <button class="btn btn-primary" onclick="createNewProject()">＋ 新規作成</button>
         </div>
 
+        <div id="streakArea"></div>
         <div id="deadlineAlertArea"></div>
         <div class="home-grid">
             <!-- 左カラム: 最優先案件 + カレンダー -->
@@ -840,6 +900,17 @@
                     <div class="timer-display" id="timerDisplay">00:00:00</div>
                     <button class="btn-timer" id="btnTimer" onclick="toggleTimer()">▶ 作業開始</button>
                     <div style="font-size: 0.85em; color: var(--muted); margin-top: 10px; font-weight:bold;" id="todayTimeTotal">今日の作業時間: 0分</div>
+                    <div class="goal-time-wrap" id="goalTimeWrap" style="margin-top:10px;">
+                        <div class="goal-time-head">
+                            <span>🎯 今日の目標時間</span>
+                            <span class="goal-time-pct" id="goalTimePct">-</span>
+                        </div>
+                        <div class="goal-time-bar-bg"><div class="goal-time-bar-fill" id="goalTimeFill" style="width:0%"></div></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+                            <span id="goalTimeLabel" style="font-size:0.75em;color:var(--muted);">目標未設定</span>
+                            <button class="goal-time-set" onclick="openGoalTimeSetting()">⚙ 設定</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -910,16 +981,8 @@
                         <h3 style="font-size:0.9em;margin:0;">📅 タイムライン (日別)</h3>
                         <span style="font-size:0.72em;color:var(--muted);">✏️ 各行で修正できます</span>
                     </div>
-                    <!-- 総作業時間サマリー -->
-                    <div id="totalTimeSummary" style="display:none;
-                        background:var(--quota-bg); border:1px solid var(--quota-border);
-                        border-radius:8px; padding:10px 14px; margin-bottom:12px;
-                        display:flex; gap:18px; flex-wrap:wrap; align-items:center;">
-                        <span style="font-size:0.8em;font-weight:bold;color:var(--muted);">📊 このプロジェクト合計</span>
-                        <span id="totalTimeVal" style="font-size:1em;font-weight:900;color:var(--quota-num-color);font-family:monospace;">-</span>
-                        <span id="totalPagesVal" style="font-size:0.85em;color:var(--muted);"></span>
-                        <span id="avgTimeVal"    style="font-size:0.85em;color:var(--muted);"></span>
-                    </div>
+                    <!-- 総作業時間サマリー（記録があるときのみ表示） -->
+                    <div class="total-time-summary" id="totalTimeSummary" style="display:none;"></div>
                     <div class="log-list" id="logList"></div>
                 </div>
 
@@ -930,6 +993,43 @@
             </div>
         </div>
     </div>
+</div>
+
+
+<!-- ══ 週間サマリーモーダル ══ -->
+<div id="weeklyModal" class="modal-overlay">
+  <div class="weekly-modal-box">
+    <div style="text-align:center;font-size:2em;margin-bottom:8px;">📅</div>
+    <div class="modal-title" style="text-align:center;justify-content:center;">先週のふりかえり</div>
+    <div class="weekly-kpi-row" id="weeklyKpiRow"></div>
+    <p id="weeklyComment" style="font-size:0.85em;color:var(--muted);text-align:center;margin:0 0 16px;line-height:1.5;"></p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="closeWeeklyModal()">よし、今週もがんばる！</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 目標時間設定モーダル ══ -->
+<div id="goalTimeModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:340px;">
+    <div class="modal-title">🎯 今日の目標作業時間</div>
+    <p style="font-size:0.85em;color:var(--muted);margin:0 0 14px;">タイマーの進捗バーに反映されます</p>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn" onclick="setGoalTime(30)">30分</button>
+      <button class="btn" onclick="setGoalTime(60)">1時間</button>
+      <button class="btn" onclick="setGoalTime(90)">1.5時間</button>
+      <button class="btn" onclick="setGoalTime(120)">2時間</button>
+      <button class="btn" onclick="setGoalTime(180)">3時間</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+        <input type="number" id="goalTimeCustom" placeholder="分で入力" min="1" style="width:120px;">
+        <button class="btn btn-primary" onclick="setGoalTimeCustom()">設定</button>
+    </div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn" onclick="setGoalTime(0)">目標をリセット</button>
+      <button class="btn btn-primary" onclick="closeGoalTimeModal()">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ テーマモーダル ══ -->
@@ -1272,6 +1372,7 @@
         if(appData.currentId && appData.projects.find(p => p.id === appData.currentId)) { openProject(appData.currentId); }
         else { goToList(); }
         setInterval(updateTimerUI, 1000);
+        checkWeeklySummary();
     }
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); }
 
@@ -1529,6 +1630,7 @@
     function renderList() {
         domHero.innerHTML = ''; domList.innerHTML = ''; if(domArchList) domArchList.innerHTML = '';
         domOtherDetails.style.display = 'none'; domOtherDetails.open = undefined;
+        renderStreakBar();
 
         // ── 締切警告バナー描画 ──
         const alertArea = document.getElementById('deadlineAlertArea');
@@ -1631,10 +1733,12 @@
 
     function renderCard(p, container) {
         const pct = p.total > 0 ? Math.min(100, (p.completed / p.total) * 100) : 0;
+        const hint = getCardHint(p);
         const card = document.createElement('div'); card.className = 'project-card'; card.onclick = () => openProject(p.id);
         card.innerHTML = `<h3><span>${p.title || '無題'}</span> <span>${pct.toFixed(0)}%</span></h3>
             <div class="meta">締切: ${p.deadline} | 完了: ${p.completed} / ${p.total}</div>
-            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width: ${pct}%"></div></div>`;
+            <div class="mini-bar-bg"><div class="mini-bar-fill" style="width: ${pct}%"></div></div>
+            <div class="card-hint ${hint.cls}">${hint.msg}</div>`;
         container.appendChild(card);
     }
 
@@ -1652,12 +1756,13 @@
         d.total.value = p.total; d.comp.value = p.completed;
         d.btnArch.innerHTML = p.isArchived ? '📦 アーカイブに戻す' : '✅ 制作完了';
         d.btnArch.className = p.isArchived ? 'btn btn-unarchive' : 'btn btn-complete';
+        d.btnArch.style.flex = '1';
         refreshDetail();
     }
 
     function toggleArchive() {
         const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
-        const completing = !p.isArchived; // true = 今から完了にする
+        const completing = !p.isArchived;
         p.isArchived = !p.isArchived;
         saveData();
         if(completing) {
@@ -1667,7 +1772,6 @@
         }
     }
 
-    // ── 紙吹雪エフェクト ──
     function launchConfetti(onDone) {
         const canvas = document.createElement('canvas');
         canvas.className = 'confetti-canvas';
@@ -1679,16 +1783,16 @@
         const COLORS = ['#4CAF50','#ffca28','#e91e8c','#0288d1','#ff6d00','#ab47bc','#fff','#f44336'];
         const SHAPES = ['rect','circle','ribbon'];
         const pieces = Array.from({length: 160}, () => ({
-            x:  Math.random() * canvas.width,
-            y:  Math.random() * -canvas.height * 0.5 - 10,
-            w:  6 + Math.random() * 10,
-            h:  4 + Math.random() * 7,
-            color: COLORS[Math.floor(Math.random()*COLORS.length)],
-            shape: SHAPES[Math.floor(Math.random()*SHAPES.length)],
-            vx: (Math.random()-0.5)*3.5,
-            vy: 2.5 + Math.random()*3.5,
-            angle: Math.random()*360,
-            spin:  (Math.random()-0.5)*8,
+            x: Math.random() * canvas.width,
+            y: Math.random() * -canvas.height * 0.5 - 10,
+            w: 6 + Math.random() * 10,
+            h: 4 + Math.random() * 7,
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+            shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
+            vx: (Math.random() - 0.5) * 3.5,
+            vy: 2.5 + Math.random() * 3.5,
+            angle: Math.random() * 360,
+            spin:  (Math.random() - 0.5) * 8,
             opacity: 1,
         }));
 
@@ -1697,30 +1801,28 @@
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            pieces.forEach(p => {
-                p.x  += p.vx;
-                p.y  += p.vy;
-                p.vy += 0.06; // 重力
-                p.angle += p.spin;
-                if(frame > 80) p.opacity = Math.max(0, p.opacity - 0.018);
+            pieces.forEach(p2 => {
+                p2.x += p2.vx;
+                p2.y += p2.vy;
+                p2.vy += 0.06;
+                p2.angle += p2.spin;
+                if(frame > 80) p2.opacity = Math.max(0, p2.opacity - 0.018);
 
                 ctx.save();
-                ctx.globalAlpha = p.opacity;
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.angle * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                if(p.shape === 'circle') {
+                ctx.globalAlpha = p2.opacity;
+                ctx.translate(p2.x, p2.y);
+                ctx.rotate(p2.angle * Math.PI / 180);
+                ctx.fillStyle = p2.color;
+                if(p2.shape === 'circle') {
+                    ctx.beginPath(); ctx.arc(0, 0, p2.w/2, 0, Math.PI*2); ctx.fill();
+                } else if(p2.shape === 'ribbon') {
                     ctx.beginPath();
-                    ctx.arc(0, 0, p.w/2, 0, Math.PI*2);
-                    ctx.fill();
-                } else if(p.shape === 'ribbon') {
-                    ctx.beginPath();
-                    ctx.moveTo(-p.w/2, 0);
-                    ctx.quadraticCurveTo(0, -p.h, p.w/2, 0);
-                    ctx.quadraticCurveTo(0, p.h, -p.w/2, 0);
+                    ctx.moveTo(-p2.w/2, 0);
+                    ctx.quadraticCurveTo(0, -p2.h, p2.w/2, 0);
+                    ctx.quadraticCurveTo(0, p2.h, -p2.w/2, 0);
                     ctx.fill();
                 } else {
-                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.fillRect(-p2.w/2, -p2.h/2, p2.w, p2.h);
                 }
                 ctx.restore();
             });
@@ -1754,11 +1856,30 @@
     function addProgressLog() {
         const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
         const val = parseInt(d.qLog.value); if(isNaN(val) || val <= 0) return;
+
+        // ノルマ達成チェック（追加前）
+        const todayStr  = getTodayStr(); const todayDt = getToday();
+        const deadDt    = new Date(p.deadline);
+        const diffDays  = Math.ceil((deadDt - todayDt) / 86400000);
+        const remain    = p.total - p.completed;
+        const logBefore = (p.logs||[]).find(l => l.date === todayStr);
+        const doneBefore = logBefore ? logBefore.done : 0;
+        const quota = diffDays > 0 ? Math.ceil((remain + doneBefore) / diffDays) : remain + doneBefore;
+        const wasAchieved = doneBefore >= quota && quota > 0;
+
         p.completed = Math.min(p.total, p.completed + val); d.comp.value = p.completed;
-        const today = getTodayStr(); if(!p.logs) p.logs = [];
-        let log = p.logs.find(l => l.date === today);
-        if(log) { log.done += val; log.totalCompleted = p.completed; } else { p.logs.push({ date: today, done: val, totalCompleted: p.completed }); }
+        if(!p.logs) p.logs = [];
+        let log = p.logs.find(l => l.date === todayStr);
+        if(log) { log.done += val; log.totalCompleted = p.completed; } else { p.logs.push({ date: todayStr, done: val, totalCompleted: p.completed }); }
         d.qLog.value = ''; saveData(); refreshDetail();
+
+        // ノルマ達成した瞬間だけスパーク
+        const doneAfter = (p.logs.find(l => l.date === todayStr)||{done:0}).done;
+        const newRemain = p.total - p.completed;
+        const newQuota  = diffDays > 0 ? Math.ceil((newRemain + doneAfter) / diffDays) : newRemain + doneAfter;
+        if(!wasAchieved && doneAfter >= newQuota && newQuota > 0) {
+            sparkEffect(document.getElementById('quotaCard'));
+        }
     }
 
     function toggleTimer() {
@@ -1872,19 +1993,23 @@
         // PC用今日の作業時間
         const pcTTLine2 = document.getElementById('pcTodayTimeLine');
         if(pcTTLine2) pcTTLine2.textContent = `今日の作業時間: ${formatMin(todayTLog ? todayTLog.totalMinutes : 0)}`;
+        updateGoalTimeUI();
 
-        // ── タイムライン上部：総作業時間サマリー更新 ──
-        const summaryEl   = document.getElementById('totalTimeSummary');
-        const totalTimeEl = document.getElementById('totalTimeVal');
-        const totalPagesEl= document.getElementById('totalPagesVal');
-        const avgTimeEl   = document.getElementById('avgTimeVal');
-        if(summaryEl && totalAllMinutes > 0) {
-            summaryEl.style.display = 'flex';
-            totalTimeEl.textContent = formatMin(totalAllMinutes);
-            totalPagesEl.textContent = `完了 ${p.completed}p`;
-            avgTimeEl.textContent   = p.completed > 0 ? `1pあたり ${formatMin(totalAllMinutes / p.completed)}` : '';
-        } else if(summaryEl) {
-            summaryEl.style.display = 'none';
+        // ── 総作業時間サマリー更新 ──
+        const summaryEl = document.getElementById('totalTimeSummary');
+        if(summaryEl) {
+            if(totalAllMinutes > 0) {
+                const avgPerPage = p.completed > 0 ? formatMin(totalAllMinutes / p.completed) : null;
+                summaryEl.style.display = 'flex';
+                summaryEl.innerHTML = `
+                    <span class="total-time-label">📊 このプロジェクト合計</span>
+                    <span class="total-time-main">${formatMin(totalAllMinutes)}</span>
+                    <span class="total-time-sub">完了 ${p.completed}p</span>
+                    ${avgPerPage ? `<span class="total-time-sub">1pあたり ${avgPerPage}</span>` : ''}
+                `;
+            } else {
+                summaryEl.style.display = 'none';
+            }
         }
 
         // ── タイムライン描画（編集ボタン付き） ──
@@ -2244,6 +2369,196 @@
             };
             listEl.appendChild(card);
         });
+    }
+
+
+    // ══════════════════════════════════════════════════════
+    // ① 連続稼働ストリーク（ホーム表示）
+    // ══════════════════════════════════════════════════════
+    function calcStreak() {
+        const workDays = new Set();
+        appData.projects.forEach(p => (p.logs||[]).forEach(l => { if(l.done > 0) workDays.add(l.date); }));
+        let streak = 0;
+        const dt = getToday();
+        for(let i = 0; i < 365; i++) {
+            const ds = formatDate(new Date(dt.getTime() - i * 86400000));
+            if(workDays.has(ds)) streak++;
+            else if(i === 0) continue; // 今日未記録はスキップ
+            else break;
+        }
+        return streak;
+    }
+
+    function renderStreakBar() {
+        const el = document.getElementById('streakArea'); if(!el) return;
+        const streak = calcStreak();
+        if(streak < 2) { el.innerHTML = ''; return; }
+        const msgs = ['', '', '続いてる！', '好調！', 'いいペース！', '乗ってきた！',
+                      'すごい！', '安定してる！', '本物だ！', '継続力が光る！', 'えぐい！'];
+        const msg = streak < msgs.length ? msgs[streak] : `${streak}日の積み重ね！`;
+        el.innerHTML = `
+            <div class="streak-bar">
+                <span class="streak-fire">🔥</span>
+                <div>
+                    <span class="streak-num">${streak}日</span>
+                    <span class="streak-text"> 連続稼働中！<br>${msg}</span>
+                </div>
+            </div>`;
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ② ノルマ達成時のミニ星エフェクト
+    // ══════════════════════════════════════════════════════
+    function sparkEffect(targetEl) {
+        if(!targetEl) return;
+        const rect = targetEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top  + rect.height / 2;
+        const COLORS = ['#ffca28','#4CAF50','#fff','#fb8c00','#e91e8c','#64b5f6'];
+        const N = 22;
+        for(let i = 0; i < N; i++) {
+            const star = document.createElement('div');
+            const angle = (i / N) * Math.PI * 2;
+            const dist  = 40 + Math.random() * 55;
+            const size  = 5 + Math.random() * 7;
+            const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            star.style.cssText = `
+                position:fixed; pointer-events:none; z-index:9998;
+                left:${cx}px; top:${cy}px;
+                width:${size}px; height:${size}px;
+                border-radius:50%; background:${color};
+                transform:translate(-50%,-50%);
+                transition: left 0.55s cubic-bezier(.2,.8,.4,1),
+                            top  0.55s cubic-bezier(.2,.8,.4,1),
+                            opacity 0.55s ease;
+                opacity: 1;
+            `;
+            document.body.appendChild(star);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    star.style.left    = `${cx + Math.cos(angle) * dist}px`;
+                    star.style.top     = `${cy + Math.sin(angle) * dist}px`;
+                    star.style.opacity = '0';
+                });
+            });
+            setTimeout(() => star.remove(), 600);
+        }
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ③ 週間サマリーモーダル
+    // ══════════════════════════════════════════════════════
+    function checkWeeklySummary() {
+        const today = new Date();
+        if(today.getDay() !== 1) return; // 月曜日のみ
+        const key = 'weekly_shown_' + formatDate(getToday());
+        if(localStorage.getItem(key)) return;
+        localStorage.setItem(key, '1');
+
+        // 先週の集計（月〜日）
+        const monday = new Date(today); monday.setDate(today.getDate() - 7);
+        monday.setHours(0,0,0,0);
+        const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+
+        let days = new Set(), pages = 0, minutes = 0, projects = 0;
+        const doneProjects = new Set();
+        appData.projects.forEach(p => {
+            (p.logs||[]).forEach(l => {
+                const d2 = new Date(l.date);
+                if(d2 >= monday && d2 <= sunday) { days.add(l.date); pages += l.done; }
+            });
+            (p.timeLogs||[]).forEach(l => {
+                const d2 = new Date(l.date);
+                if(d2 >= monday && d2 <= sunday) minutes += l.totalMinutes;
+            });
+        });
+
+        const kpis = [
+            { num: days.size + '日', label: '稼働日数' },
+            { num: pages + 'p',      label: '完了ページ' },
+            { num: formatMin(minutes), label: '総作業時間' },
+        ];
+        const row = document.getElementById('weeklyKpiRow');
+        if(row) row.innerHTML = kpis.map(k => `
+            <div class="weekly-kpi">
+                <div class="weekly-kpi-num">${k.num}</div>
+                <div class="weekly-kpi-label">${k.label}</div>
+            </div>`).join('');
+
+        const comments = [
+            days.size === 0 ? '先週はお休みしたね。今週からまた始めよう！' :
+            days.size <= 2  ? 'まずは動き出せた！今週はもう少し増やしてみよう。' :
+            days.size <= 4  ? '安定して動けてる。このペースを続けよう！' :
+                              '先週は本当によく動いた！この調子！',
+        ];
+        const cmt = document.getElementById('weeklyComment');
+        if(cmt) cmt.textContent = comments[0];
+
+        setTimeout(() => document.getElementById('weeklyModal').classList.add('open'), 800);
+    }
+    function closeWeeklyModal() { document.getElementById('weeklyModal').classList.remove('open'); }
+
+    // ══════════════════════════════════════════════════════
+    // ④ プロジェクトカードのひと言ヒント（renderCardに統合）
+    // ══════════════════════════════════════════════════════
+    function getCardHint(p) {
+        const todayDt  = getToday();
+        const deadDt   = new Date(p.deadline);
+        const diffDays = Math.ceil((deadDt - todayDt) / 86400000);
+        const remain   = p.total - p.completed;
+        if(remain <= 0) return { msg:'✅ 完了！制作完了ボタンを押そう', cls:'card-hint-ok' };
+        if(diffDays < 0) return { msg:`🚨 ${Math.abs(diffDays)}日超過・残${remain}p`, cls:'card-hint-over' };
+        if(diffDays === 0) return { msg:`⏰ 本日締切！残${remain}p`, cls:'card-hint-over' };
+        const needPerDay = Math.ceil(remain / diffDays);
+        if(needPerDay >= 8)  return { msg:`⚠️ 残${diffDays}日・1日${needPerDay}p必要`, cls:'card-hint-over' };
+        if(needPerDay >= 4)  return { msg:`📌 残${diffDays}日・1日${needPerDay}pペース`, cls:'card-hint-warn' };
+        return { msg:`✓ 残${diffDays}日・1日${needPerDay}pペース`, cls:'card-hint-ok' };
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ⑤ 目標作業時間
+    // ══════════════════════════════════════════════════════
+    function openGoalTimeSetting()  { document.getElementById('goalTimeModal').classList.add('open'); }
+    function closeGoalTimeModal()   { document.getElementById('goalTimeModal').classList.remove('open'); }
+
+    function setGoalTime(minutes) {
+        if(!appData.currentId) return;
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        if(!p.goalTime) p.goalTime = {};
+        p.goalTime[getTodayStr()] = minutes;
+        saveData();
+        updateGoalTimeUI();
+        closeGoalTimeModal();
+    }
+    function setGoalTimeCustom() {
+        const val = parseInt(document.getElementById('goalTimeCustom').value);
+        if(!isNaN(val) && val > 0) setGoalTime(val);
+    }
+
+    function updateGoalTimeUI() {
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const todayStr = getTodayStr();
+        const goalMin  = (p.goalTime && p.goalTime[todayStr]) || 0;
+        const todayTLog = (p.timeLogs||[]).find(l => l.date === todayStr);
+        const doneMin   = todayTLog ? todayTLog.totalMinutes : 0;
+
+        const wrap  = document.getElementById('goalTimeWrap'); if(!wrap) return;
+        const fill  = document.getElementById('goalTimeFill');
+        const pctEl = document.getElementById('goalTimePct');
+        const label = document.getElementById('goalTimeLabel');
+
+        if(!goalMin) {
+            if(fill)  fill.style.width = '0%';
+            if(pctEl) pctEl.textContent = '-';
+            if(label) label.textContent = '目標未設定';
+            return;
+        }
+        const pct = Math.min(100, (doneMin / goalMin * 100));
+        if(fill)  fill.style.width  = pct + '%';
+        if(pctEl) pctEl.textContent = pct.toFixed(0) + '%';
+        if(label) label.textContent = `${formatMin(doneMin)} / ${formatMin(goalMin)}`;
+        // 目標達成時は色変更
+        if(fill) fill.style.background = pct >= 100 ? 'var(--quota-met-a)' : 'var(--primary)';
     }
 
     window.onload = init;
