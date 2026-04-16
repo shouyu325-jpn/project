@@ -652,6 +652,28 @@
         50%       { box-shadow: 0 0 0 8px rgba(229,57,53,0.15), 0 12px 36px rgba(229,57,53,0.5); }
     }
 
+
+    /* ── 完了・アーカイブボタン ── */
+    .btn-complete {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        transition: 0.2s;
+    }
+    .btn-complete:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-unarchive {
+        background: var(--border); color: var(--muted);
+    }
+
+    /* ── 紙吹雪パーティクル ── */
+    .confetti-canvas {
+        position: fixed; inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
 </style>
 </head>
 <body>
@@ -888,11 +910,21 @@
                         <h3 style="font-size:0.9em;margin:0;">📅 タイムライン (日別)</h3>
                         <span style="font-size:0.72em;color:var(--muted);">✏️ 各行で修正できます</span>
                     </div>
+                    <!-- 総作業時間サマリー -->
+                    <div id="totalTimeSummary" style="display:none;
+                        background:var(--quota-bg); border:1px solid var(--quota-border);
+                        border-radius:8px; padding:10px 14px; margin-bottom:12px;
+                        display:flex; gap:18px; flex-wrap:wrap; align-items:center;">
+                        <span style="font-size:0.8em;font-weight:bold;color:var(--muted);">📊 このプロジェクト合計</span>
+                        <span id="totalTimeVal" style="font-size:1em;font-weight:900;color:var(--quota-num-color);font-family:monospace;">-</span>
+                        <span id="totalPagesVal" style="font-size:0.85em;color:var(--muted);"></span>
+                        <span id="avgTimeVal"    style="font-size:0.85em;color:var(--muted);"></span>
+                    </div>
                     <div class="log-list" id="logList"></div>
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button class="btn" style="flex:1;" onclick="toggleArchive()" id="btnArchive">📦 アーカイブ</button>
+                    <button class="btn btn-complete" style="flex:1;" onclick="toggleArchive()" id="btnArchive">✅ 制作完了</button>
                     <button class="btn btn-danger" style="flex:1;" onclick="deleteProject()">🗑 削除</button>
                 </div>
             </div>
@@ -1618,11 +1650,90 @@
         vList.classList.remove('active'); vDetail.classList.add('active');
         d.title.value = p.title; d.start.value = p.startDate; d.deadline.value = p.deadline;
         d.total.value = p.total; d.comp.value = p.completed;
-        d.btnArch.innerHTML = p.isArchived ? "📦 アーカイブ解除" : "📦 アーカイブ";
+        d.btnArch.innerHTML = p.isArchived ? '📦 アーカイブに戻す' : '✅ 制作完了';
+        d.btnArch.className = p.isArchived ? 'btn btn-unarchive' : 'btn btn-complete';
         refreshDetail();
     }
 
-    function toggleArchive() { const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return; p.isArchived = !p.isArchived; saveData(); goToList(); }
+    function toggleArchive() {
+        const p = appData.projects.find(x => x.id === appData.currentId); if(!p) return;
+        const completing = !p.isArchived; // true = 今から完了にする
+        p.isArchived = !p.isArchived;
+        saveData();
+        if(completing) {
+            launchConfetti(() => goToList());
+        } else {
+            goToList();
+        }
+    }
+
+    // ── 紙吹雪エフェクト ──
+    function launchConfetti(onDone) {
+        const canvas = document.createElement('canvas');
+        canvas.className = 'confetti-canvas';
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const COLORS = ['#4CAF50','#ffca28','#e91e8c','#0288d1','#ff6d00','#ab47bc','#fff','#f44336'];
+        const SHAPES = ['rect','circle','ribbon'];
+        const pieces = Array.from({length: 160}, () => ({
+            x:  Math.random() * canvas.width,
+            y:  Math.random() * -canvas.height * 0.5 - 10,
+            w:  6 + Math.random() * 10,
+            h:  4 + Math.random() * 7,
+            color: COLORS[Math.floor(Math.random()*COLORS.length)],
+            shape: SHAPES[Math.floor(Math.random()*SHAPES.length)],
+            vx: (Math.random()-0.5)*3.5,
+            vy: 2.5 + Math.random()*3.5,
+            angle: Math.random()*360,
+            spin:  (Math.random()-0.5)*8,
+            opacity: 1,
+        }));
+
+        let frame = 0;
+        const maxFrames = 160;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pieces.forEach(p => {
+                p.x  += p.vx;
+                p.y  += p.vy;
+                p.vy += 0.06; // 重力
+                p.angle += p.spin;
+                if(frame > 80) p.opacity = Math.max(0, p.opacity - 0.018);
+
+                ctx.save();
+                ctx.globalAlpha = p.opacity;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                if(p.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.w/2, 0, Math.PI*2);
+                    ctx.fill();
+                } else if(p.shape === 'ribbon') {
+                    ctx.beginPath();
+                    ctx.moveTo(-p.w/2, 0);
+                    ctx.quadraticCurveTo(0, -p.h, p.w/2, 0);
+                    ctx.quadraticCurveTo(0, p.h, -p.w/2, 0);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                }
+                ctx.restore();
+            });
+            frame++;
+            if(frame < maxFrames) {
+                requestAnimationFrame(draw);
+            } else {
+                canvas.remove();
+                if(onDone) onDone();
+            }
+        }
+        draw();
+    }
     function deleteProject() { if(!confirm("マジで削除する？")) return; appData.projects = appData.projects.filter(x => x.id !== appData.currentId); saveData(); goToList(); }
 
     function saveDetail() {
@@ -1761,6 +1872,20 @@
         // PC用今日の作業時間
         const pcTTLine2 = document.getElementById('pcTodayTimeLine');
         if(pcTTLine2) pcTTLine2.textContent = `今日の作業時間: ${formatMin(todayTLog ? todayTLog.totalMinutes : 0)}`;
+
+        // ── タイムライン上部：総作業時間サマリー更新 ──
+        const summaryEl   = document.getElementById('totalTimeSummary');
+        const totalTimeEl = document.getElementById('totalTimeVal');
+        const totalPagesEl= document.getElementById('totalPagesVal');
+        const avgTimeEl   = document.getElementById('avgTimeVal');
+        if(summaryEl && totalAllMinutes > 0) {
+            summaryEl.style.display = 'flex';
+            totalTimeEl.textContent = formatMin(totalAllMinutes);
+            totalPagesEl.textContent = `完了 ${p.completed}p`;
+            avgTimeEl.textContent   = p.completed > 0 ? `1pあたり ${formatMin(totalAllMinutes / p.completed)}` : '';
+        } else if(summaryEl) {
+            summaryEl.style.display = 'none';
+        }
 
         // ── タイムライン描画（編集ボタン付き） ──
         d.logList.innerHTML = '';
